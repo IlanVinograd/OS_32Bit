@@ -1,5 +1,5 @@
-## Bootloaders in-depth guide (Pre bootloader)
-- ### ON POWER BUTTON
+## Bootloaders in-depth guide 
+- ### ON POWER BUTTON (Pre bootloader)
   - When this button is pressed, the wires connected to the button send an electronic signal to the motherboard. The motherboard simply reroutes this signal to 
  the power supply (PSU).
  The PSU then sends a signal, called the "power_good" signal into the motherboard to the Basic Input Output System (BIOS).
