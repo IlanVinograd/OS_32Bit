@@ -8,7 +8,7 @@
   BIOS will execute Interrupt (INT) 0x19 to attempt to find a bootable device.
   If the BIOS found a bootable device it load what is on `0x7c00`
   
-  - Our bootloader is multi staged, this means we need to call STAGE1 first 
+  - Our bootloader is multi staged, this means we need to call STAGE1 first.    
   To do so we put STAGE1 at `0x7c00` using `[org 0x7c00]` and when the BIOS jumps to `0x7c00` it should find our own STAGE 1!
 
 - ### STAGE 1 bootloader
