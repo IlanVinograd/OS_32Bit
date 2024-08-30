@@ -1,4 +1,4 @@
-## Bootloaders in-depth guide
+## Bootloaders in-depth guide (Pre bootloader)
 - ### ON POWER BUTTON
   - When this button is pressed, the wires connected to the button send an electronic signal to the motherboard. The motherboard simply reroutes this signal to 
  the power supply (PSU).
