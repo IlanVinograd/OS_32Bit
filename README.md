@@ -9,5 +9,5 @@ It is entirely open-source!, allowing anyone to contribute to its development.
   *Architecture, File System*
 ## 📖 Documentation 📖
 - [WorkFlow.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/WorkFlow.md)
-- [TECHNICAL_GUIDE.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/TECHNICAL_GUIDE.md)  
+- [TECHNICAL_GUIDE.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/Docs/Technical_Guide.md)
 - [Resources.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/Resources.md)
