@@ -50,14 +50,13 @@ main:                   ; Main routine of the bootloader begins here.
 
     jc disk_read_error  ; If carry flag is set (indicating an error), jump to the error handler.
 
-    pass:               ; If the disk read was successful (carry flag is cleared), continue from here.
-        jmp 0x0800:0x0000   ; Jump to the loaded Stage 2 at address 0x0800:0x0000 (this is where Stage 2 resides).
-                            ; Here, 0x0800 is the segment, and 0x0000 is the offset.
-                            ; Physical address = 0x0800 * 16 + 0x0000 = 0x8000, where Stage 2 is loaded.
-code stage1.asm
+pass:                   ; If the disk read was successful (carry flag is cleared), continue from here.
+    jmp 0x0800:0x0000   ; Jump to the loaded Stage 2 at address 0x0800:0x0000 (this is where Stage 2 resides).
+                        ; Here, 0x0800 is the segment, and 0x0000 is the offset.
+                        ; Physical address = 0x0800 * 16 + 0x0000 = 0x8000, where Stage 2 is loaded.
 
-    disk_read_error:
-        int 18h         ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).
+disk_read_error:
+    int 18h         ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).
 
 TIMES 510-($-$$) DB 0   ; Pad the bootloader to ensure it is exactly 512 bytes, with zeros filling the remaining space.
 DW 0xAA55               ; The boot signature (magic number) required for the BIOS to recognize this as a bootable sector.
