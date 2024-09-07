@@ -57,6 +57,6 @@ pass:                   ; If the disk read was successful (carry flag is cleared
 
 disk_read_error:
     int 18h         ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).
-
+                    ; This error massage will occur --> IO write(0x01f0): current command is 20h
 TIMES 510-($-$$) DB 0   ; Pad the bootloader to ensure it is exactly 512 bytes, with zeros filling the remaining space.
 DW 0xAA55               ; The boot signature (magic number) required for the BIOS to recognize this as a bootable sector.

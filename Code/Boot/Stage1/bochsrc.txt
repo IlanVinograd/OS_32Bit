@@ -1,0 +1,22 @@
+# Set the amount of memory (32 MB is fine)
+megs: 32
+
+# Main BIOS (romimage)
+romimage: file=C:\Bochs\Bochs-2.7\BIOS-bochs-latest
+
+# VGA BIOS (vgaromimage)
+vgaromimage: file=C:\Bochs\Bochs-2.7\VGABIOS-lgpl-latest
+
+# Disk image setup
+ata0-master: type=disk, path="C:\Bochs\Bochs-2.7\bootloader.img", mode=flat, cylinders=20, heads=16, spt=63
+
+# ata0-master: type=disk, path="bootloader.img", mode=flat
+
+# Boot from disk
+boot: disk
+
+# Logging setup
+log: bochslog.txt
+
+# Display setup for Windows
+display_library: win32
