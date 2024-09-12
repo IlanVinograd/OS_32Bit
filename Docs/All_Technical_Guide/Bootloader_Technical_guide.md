@@ -15,6 +15,7 @@ In this document, you will find an in-depth explanation of each section of the c
 - [Error Handling](#error-handling)
 - [Padding and Boot Signature](#padding-and-boot-signature)
 - [Code Reference](#code-reference)
+- [Bootloader Code Layout: Hard Disk (HD) and Physical Memory (PM) Mapping](#bootloader-code-layout-hard-disk-hd-and-physical-memory-pm-mapping)
 
 ---
 
@@ -178,8 +179,12 @@ DW 0xAA55
 
 ---
 
+## Bootloader Code Layout: Hard Disk (HD) and Physical Memory (PM) Mapping
 
+### Hard Disk:
 
+![Bootloader Layout](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/HD.png)
 
+### Physical Address:
 
-
+![Bootloader Layout](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/PA.png)
