@@ -3,7 +3,7 @@
                         ; This is the physical address where the bootloader is loaded into memory.
 
 start:                  ; Start of execution, this label marks the entry point of the code.
-    jmp main            ; Jump to the 'main' label to skip over data (if present), ensuring the code runs properly.
+    jmp main            ; Jump to the 'main' label to start execution.
 
 main:                   ; Main routine of the bootloader begins here.
 
@@ -26,9 +26,8 @@ main:                   ; Main routine of the bootloader begins here.
     ; -------------------------
     xor ax, ax          ; Set AX to 0 (clear register).
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
-    mov sp, 0xFFFF      ; Set the Stack Pointer (SP) to the top of memory. The stack grows downwards from 0xFFFF.
-                        ; Although SS is set to 0x0000 here, the actual physical address for the stack
-                        ; will be 0x0000:0xFFFF = 0xFFFF (top of the 64KB memory block).
+    mov sp, 0xFFFF      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFF).
+                        ; In real mode, the stack grows downward from 0xFFFF.
 
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
@@ -36,16 +35,17 @@ main:                   ; Main routine of the bootloader begins here.
     ; Load Stage 2 bootloader from disk
     ; -------------------------
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
-    mov al, 01h         ; Read 63 sectors (this should correspond to the size of Stage 2). Ensure this number does not exceed the size of Stage 2 to avoid reading unnecessary code.
+    mov al, 01h         ; Read 1 sector from the disk (this corresponds to the size of the first sector of Stage 2).
 
     mov ch, 00h         ; Set Cylinder number to 1 (since Stage 1 is at Cylinder 0, Stage 2 starts at Cylinder 1).
     mov cl, 02h         ; Set Sector number to 1 (the first sector on the cylinder to read from).
     mov dh, 00h         ; Set Head number to 0 (assuming we are using Head 0 for now).
-    mov dl, 0x80
+    mov dl, 0x80        ; Use the first hard drive (usually 0x80 for the primary hard disk).
 
-    mov es, ax          ; Set ES to the address where Stage 2 should be loaded (0x7C0).
-    mov bx, 0x8000      ; Set BX to 0x8000, the memory address where Stage 2 will be loaded.
-                        ; Stage 2 will be loaded into the physical address 0x8000:0000 (0x08000 physical address).
+    mov bx, 0x0400      ; Set BX to 0x0400, the offset address where Stage 2 will be loaded.
+                        ; Stage 2 will be loaded into memory using segment:offset addressing.
+                        ; ES = 0x7C0, BX = 0x0400, so the physical address = ES * 16 + BX.
+                        ; Formula: 0x7C0 * 16 + 0x0400 = 0x7C00 + 0x0400 = 0x8000 (the physical address where Stage 2 is loaded).
 
     int 13h             ; Call BIOS interrupt 13h to read the specified sectors into memory.
 
@@ -57,7 +57,8 @@ pass:                   ; If the disk read was successful (carry flag is cleared
                         ; Physical address = 0x0800 * 16 + 0x0000 = 0x8000, where Stage 2 is loaded.
 
 disk_read_error:
-    int 18h         ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).
-                    ; This error massage will occur --> IO write(0x01f0): current command is 20h
+    int 18h             ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).
+                        ; This error message will occur --> IO write(0x01f0): current command is 20h
+
 TIMES 510-($-$$) DB 0   ; Pad the bootloader to ensure it is exactly 512 bytes, with zeros filling the remaining space.
 DW 0xAA55               ; The boot signature (magic number) required for the BIOS to recognize this as a bootable sector.

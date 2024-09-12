@@ -1,7 +1,10 @@
 [BITS 16]
-[ORG 0x8000]
+[org 0x0000]
 
 start:
+    mov ax, 0x0800
+    mov ds, ax
+
     mov si, message
     call print_string
 
@@ -10,10 +13,12 @@ start:
 
 print_string:
     mov ah, 0x0E
+    mov bl, 0x02
 .next_char:
     lodsb
     cmp al, 0
     je done
+    mov bh, 0x00
     int 0x10
     jmp .next_char
 
