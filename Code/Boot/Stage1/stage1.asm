@@ -11,20 +11,16 @@ main:                   ; Main routine of the bootloader begins here.
     ; Setup segment registers
     ; -------------------------
     cli                 ; Clear interrupts to ensure no interrupts occur while setting up segments.
-    mov ax, 0x7C0       ; Set AX to 0x7C0 (which is 0x7C00 >> 4).
+    xor ax, ax          ; Set AX to 0x0 (which is 0x0 >> 4).
                         ; Explanation: We are using segment:offset addressing in real mode.
                         ; Physical address = Segment * 16 + Offset
-                        ; So, the segment 0x7C0 * 16 = 0x7C00 (physical address).
-                        ; This is the base segment for our code loaded by BIOS at the physical address 0x7C00.
-    mov ds, ax          ; Set Data Segment (DS) to 0x7C0. DS points to the bootloader code/data in memory.
-    mov es, ax          ; Set Extra Segment (ES) to 0x7C0. ES is also set to point to our code/data.
-    mov fs, ax          ; Set FS to 0x7C0.
-    mov gs, ax          ; Set GS to 0x7C0.
+                        ; So, the segment 0x0 * 16 = 0x0 (physical address).
+    mov ds, ax          ; Set Data Segment (DS) to 0x0. DS points to the bootloader code/data in memory.
+    mov es, ax          ; Set Extra Segment (ES) to 0x0. ES is also set to point to our code/data.
 
     ; -------------------------
     ; Setup stack
     ; -------------------------
-    xor ax, ax          ; Set AX to 0 (clear register).
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
     mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
                         ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
@@ -42,19 +38,19 @@ main:                   ; Main routine of the bootloader begins here.
     mov dh, 00h         ; Set Head number to 0 (assuming we are using Head 0 for now).
     mov dl, 80h         ; Use the first hard drive (usually 0x80 for the primary hard disk).
 
-    mov bx, 0x0400      ; Set BX to 0x0400, the offset address where Stage 2 will be loaded.
+    mov bx, 0x8000      ; Set BX to 0x8000, the offset address where Stage 2 will be loaded.
                         ; Stage 2 will be loaded into memory using segment:offset addressing.
-                        ; ES = 0x7C0, BX = 0x0400, so the physical address = ES * 16 + BX.
-                        ; Formula: 0x7C0 * 16 + 0x0400 = 0x7C00 + 0x0400 = 0x8000 (the physical address where Stage 2 is loaded).
+                        ; ES = 0x0, BX = 0x8000, so the physical address = ES * 16 + BX.
+                        ; Formula: 0x0 * 16 + 0x8000 = 0x0 + 0x8000 = 0x8000 (the physical address where Stage 2 is loaded).
 
     int 13h             ; Call BIOS interrupt 13h to read the specified sectors into memory.
 
     jc disk_read_error  ; If carry flag is set (indicating an error), jump to the error handler.
 
 pass:                   ; If the disk read was successful (carry flag is cleared), continue from here.
-    jmp 0x0800:0x0000   ; Jump to the loaded Stage 2 at address 0x0800:0x0000 (this is where Stage 2 resides).
-                        ; Here, 0x0800 is the segment, and 0x0000 is the offset.
-                        ; Physical address = 0x0800 * 16 + 0x0000 = 0x8000, where Stage 2 is loaded.
+    jmp 0x0000:0x8000   ; Jump to the loaded Stage 2 at address 0x0000:0x8000 (this is where Stage 2 resides).
+                        ; Here, 0x0000 is the segment, and 0x8000 is the offset.
+                        ; Physical address = 0x0000 * 16 + 0x8000 = 0x8000, where Stage 2 is loaded.
 
 disk_read_error:
     int 18h             ; If the disk read fails, call INT 18h to attempt a boot from a different device (like network boot).

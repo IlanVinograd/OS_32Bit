@@ -1,8 +1,8 @@
 [BITS 16]
-[org 0x0000]
+[org 0x8000]
 
 start:
-    mov ax, 0x0800
+    xor ax, ax
     mov ds, ax
 
     mov si, message
