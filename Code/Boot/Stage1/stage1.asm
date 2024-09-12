@@ -40,7 +40,7 @@ main:                   ; Main routine of the bootloader begins here.
     mov ch, 00h         ; Set Cylinder number to 1 (since Stage 1 is at Cylinder 0, Stage 2 starts at Cylinder 1).
     mov cl, 02h         ; Set Sector number to 1 (the first sector on the cylinder to read from).
     mov dh, 00h         ; Set Head number to 0 (assuming we are using Head 0 for now).
-    mov dl, 0x80        ; Use the first hard drive (usually 0x80 for the primary hard disk).
+    mov dl, 80h        ; Use the first hard drive (usually 0x80 for the primary hard disk).
 
     mov bx, 0x0400      ; Set BX to 0x0400, the offset address where Stage 2 will be loaded.
                         ; Stage 2 will be loaded into memory using segment:offset addressing.
