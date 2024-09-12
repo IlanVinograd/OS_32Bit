@@ -26,8 +26,8 @@ main:                   ; Main routine of the bootloader begins here.
     ; -------------------------
     xor ax, ax          ; Set AX to 0 (clear register).
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
-    mov sp, 0xFFFF      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFF).
-                        ; In real mode, the stack grows downward from 0xFFFF.
+    mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
+                        ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
 
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
