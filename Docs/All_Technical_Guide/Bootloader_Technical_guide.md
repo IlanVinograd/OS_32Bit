@@ -181,6 +181,10 @@ DW 0xAA55
 
 ## Bootloader Code Layout: Hard Disk (HD) and Physical Memory (PM) Mapping
 
+### Hard Disk:
 
 ![Bootloader Layout](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/HD.png)
 
+### Physical Address:
+
+![Bootloader Layout](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/PA.png)
