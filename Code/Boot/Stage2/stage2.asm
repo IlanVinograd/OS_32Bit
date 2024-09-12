@@ -25,7 +25,7 @@ print_string:
 done:
     ret
 
-message db "Hello from Stage 2! :)", 0
+message db "|========== Hello from Stage 2! ;D ==========| ", 0
 
 TIMES 510-($-$$) db 0
 DW 0xAA55

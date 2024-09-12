@@ -1,17 +1,18 @@
 PROJECT_ROOT := $(CURDIR)
 
-STAGE1_SRC := $(PROJECT_ROOT)\Boot\Stage1\stage1.asm
-STAGE2_SRC := $(PROJECT_ROOT)\Boot\Stage2\stage2.asm
+STAGE1_SRC := $(PROJECT_ROOT)/Boot/Stage1/stage1.asm
+STAGE2_SRC := $(PROJECT_ROOT)/Boot/Stage2/stage2.asm
 
-STAGE1_BIN := $(PROJECT_ROOT)\Boot\Stage1\stage1.bin
-STAGE2_BIN := $(PROJECT_ROOT)\Boot\Stage2\stage2.bin
+STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
+STAGE2_BIN := $(PROJECT_ROOT)/Boot/Stage2/stage2.bin
 
-IMG := C:\Users\ilanv\OS_32Bit\Code\bootloader.img
+IMG := $(PROJECT_ROOT)/bootloader.img
 
-QEMU_IMG := "C:/QEMU/qemu-img.exe"
-DD := "C:/dd/dd.exe"
+QEMU_IMG := qemu-img
+DD := dd
 
-output: $(STAGE1_BIN) $(STAGE2_BIN) $(IMG)
+# Always clean before building
+output: clean $(STAGE1_BIN) $(STAGE2_BIN) $(IMG)
 
 $(STAGE1_BIN): $(STAGE1_SRC)
 	@echo "Assembling Stage 1..."
@@ -29,6 +30,4 @@ $(IMG): $(STAGE1_BIN) $(STAGE2_BIN)
 
 clean:
 	@echo "Cleaning up..."
-	if exist "$(STAGE1_BIN)" del "$(STAGE1_BIN)"
-	if exist "$(STAGE2_BIN)" del "$(STAGE2_BIN)"
-	if exist "$(IMG)" del "$(IMG)"
+	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(IMG)"
