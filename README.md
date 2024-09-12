@@ -2,11 +2,70 @@
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
 # Installation
-This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions. 
+This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions.
 
-- *System Requirements*
-- *Installation Guide*
-- *Booting Instructions*
+- **System Requirements**: A basic development environment with Docker installed.
+- **Installation Guide**: Follow the steps below to build and run the OS using Docker.
+- **Booting Instructions**: Run the bootloader through Docker and QEMU.
+
+### Build the Docker Image
+
+To build the Docker image, use the following command:
+
+```
+docker build -t os_32bit .
+```
+
+### Run the Project
+- You can run the project using either Command Prompt or PowerShell.
+
+  **CMD**
+  ```
+  docker run --rm -v %cd%\Code:/usr/src/bootloader os_32bit
+  ```
+
+  **OR**
+  
+  **Powershell**
+  ```
+  docker run --rm -v ${PWD}\Code:/usr/src/bootloader os_32bit
+  ```
+## Cleaning Up Containers
+- You can stop and remove all running and stopped containers using the commands below.
+- **NOTE:**
+  Always clean the containers to free up resources!
+
+  **CMD**
+  ```
+  for /f "tokens=*" %i in ('docker ps -q') do docker stop %i
+  for /f "tokens=*" %i in ('docker ps -a -q') do docker rm %i
+  ```
+
+  **OR**
+
+  **Powershell**
+  ```
+  docker stop $(docker ps -q) ; docker rm $(docker ps -a -q)
+  ```
+
+## Important Note: Save and Run
+
+- After making changes to your code, **always save your changes** before testing.
+- To test the updated code, **you must run the `docker run` command** again to start a new container with the latest changes.
+
+  For **Command Prompt**:
+
+  **CMD**
+  ```
+  docker run --rm -v %cd%\Code:/usr/src/bootloader os_32bit
+  ```
+
+  **OR**
+
+  **Powershell**
+  ```
+  docker run --rm -v ${PWD}\Code:/usr/src/bootloader os_32bit
+  ```
 
 # Technical Details
 **OS_32Bit** is designed around a 32-bit architecture, supporting essential functionalities for educational and practical purposes.
