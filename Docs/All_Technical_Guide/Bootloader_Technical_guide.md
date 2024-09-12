@@ -62,32 +62,30 @@ start:                ; Start of execution
 
 ## Segment Register Setup
 ```
-main:                 ; Start of the main routine
-    cli               ; Disable interrupts
-    mov ax, 0x7C0     ; Load AX with segment base (0x7C00 >> 4)
-    mov ds, ax        ; Set Data Segment
-    mov es, ax        ; Set Extra Segment
-    mov fs, ax        ; Set FS
-    mov gs, ax        ; Set GS
+main:                   
+    cli                 ; Disable interrupts
+    xor ax, ax          ; Clear AX register (sets AX to 0)
+    mov ds, ax          ; Set Data Segment (DS) to 0x0
+    mov es, ax          ; Set Extra Segment (ES) to 0x0
 ```
-- cli: Clears interrupts to prevent interruptions during setup.
-- mov ax, 0x7C0: Loads the value 0x7C0 into AX. This represents the segment base, as 0x7C00 is the physical address where the bootloader resides.
-- mov ds, ax: Sets the Data Segment to point to 0x7C0, so memory access is properly aligned.
-- mov es, fs, gs: Similarly sets the Extra, FS, and GS segments to 0x7C0.
+- cli: Clears interrupts to prevent any interruptions during setup.
+- xor ax, ax: Clears the AX register by XORing it with itself (sets it to 0). In real mode, the physical address is calculated as Segment * 16 + Offset. Setting AX to 0 ensures that the segments point to the base of memory (0x0000).
+- mov ds, ax: Sets the Data Segment (DS) to 0, making memory accesses relative to the base of memory.
+- mov es, ax: Sets the Extra Segment (ES) to 0, allowing any extra memory accesses to also reference the base of memory.
 
 ---
 
 ## Stack Setup
 ```
-    xor ax, ax          ; Clear AX register
-    mov ss, ax          ; Set Stack Segment to 0
-    mov sp, 0xFFFF      ; Set Stack Pointer to the highest address
-    sti                 ; Enable interrupts
+    mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
+    mov sp, 0xFFFE      ; Set Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
+                        ; The value 0xFFFE avoids potential alignment issues.
+    sti                 ; Re-enable interrupts after the setup is complete.
 ```
-- xor ax, ax: Clears the AX register by XORing it with itself (sets it to 0).
-- mov ss, ax: Sets the Stack Segment (SS) to 0, pointing the stack to the beginning of memory.
-- mov sp, 0xFFFF: Sets the Stack Pointer (SP) to 0xFFFF, meaning the stack will start at the highest address in the current memory segment.
-- sti: Re-enables interrupts after setup is complete.
+- mov ss, ax: Sets the Stack Segment (SS) to 0, so the stack will be placed at the base of memory.
+- mov sp, 0xFFFE: Sets the Stack Pointer (SP) to 0xFFFE, meaning the stack will start near the highest address in the 64KB segment. This ensures that the stack grows downward from a safe 
+  position. The value 0xFFFE is used to avoid alignment issues, as it's an even address.
+- sti: Re-enables interrupts after the segment and stack setup is complete, allowing the system to handle interrupts again.
 
 ---
 
@@ -99,16 +97,16 @@ main:                 ; Start of the main routine
     mov cl, 02h         ; Sector 2
     mov dh, 00h         ; Head 0
     mov dl, 80h         ; Primary hard disk
-    mov bx, 0x0400      ; Offset for loading Stage 2
+    mov bx, 0x8000      ; Offset for loading Stage 2
     int 13h             ; Call BIOS to load the sector
     jc disk_read_error  ; Jump to error handler if read fails
 ```
-- mov ah, 02h: Calls BIOS function to read sectors from the disk.
-- mov al, 01h: Requests to read 1 sector.
-- mov ch, cl, dh, dl: Specifies the Cylinder, Sector, Head, and Disk (Cylinder 0, Sector 2, Head 0, Disk 0x80).
-- mov bx, 0x0400: Specifies the memory location (0x0400) where Stage 2 will be loaded.
-- int 13h: Executes the disk read command.
-- jc disk_read_error: If the carry flag is set (error), the code jumps to the error handler.
+- mov ah, 02h: Calls the BIOS interrupt 13h to read sectors from the disk.
+- mov al, 01h: Requests to read one sector.
+- mov ch, cl, dh, dl: These registers specify the disk geometry: Cylinder 0, Sector 2, Head 0, Disk 0x80 (primary hard disk).
+- mov bx, 0x8000: Specifies the memory location 0x8000 where Stage 2 will be loaded. The physical address where Stage 2 is loaded is calculated as ES * 16 + BX, resulting in 0x8000.
+- int 13h: Executes the disk read command using BIOS interrupt 13h.
+- jc disk_read_error: If the disk read fails (carry flag is set), the code jumps to the error handler.
 
 ---
 
@@ -134,47 +132,44 @@ DW 0xAA55               ; Boot signature
 ## Code Reference
 Here’s the complete Stage 1 bootloader code:
 ```
-[BITS 16]               
-[org 0x7c00]            
+[BITS 16]
+[org 0x7c00]
 
-start:                  
-    jmp main            
+start:
+    jmp main
 
-main:                   
-    cli                 
-    mov ax, 0x7C0       
-    mov ds, ax          
-    mov es, ax          
-    mov fs, ax          
-    mov gs, ax          
+main:
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
 
-    xor ax, ax          
-    mov ss, ax          
-    mov sp, 0xFFFF      
+    mov ss, ax
+    mov sp, 0xFFFE
 
-    sti                
+    sti
 
-    mov ah, 02h         
-    mov al, 01h         
+    mov ah, 02h
+    mov al, 01h
 
-    mov ch, 00h         
-    mov cl, 02h         
-    mov dh, 00h         
-    mov dl, 80h        
+    mov ch, 00h
+    mov cl, 02h
+    mov dh, 00h
+    mov dl, 80h
 
-    mov bx, 0x0400      
-    int 13h             
+    mov bx, 0x8000
+    int 13h
 
-    jc disk_read_error  
+    jc disk_read_error
 
-pass:                   
-    jmp 0x0800:0x0000   
+pass:
+    jmp 0x0000:0x8000
 
 disk_read_error:
-    int 18h             
+    int 18h
 
-TIMES 510-($-$$) DB 0   
-DW 0xAA55               
+TIMES 510-($-$$) DB 0
+DW 0xAA55          
 ```
 
 ---
