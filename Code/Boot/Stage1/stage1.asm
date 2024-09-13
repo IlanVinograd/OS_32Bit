@@ -7,9 +7,9 @@ start:                  ; Start of execution, this label marks the entry point o
 
 main:                   ; Main routine of the bootloader begins here.
 
-    ; -------------------------
-    ; Setup segment registers
-    ; -------------------------
+; -------------------------
+; Setup segment registers
+; -------------------------
     cli                 ; Clear interrupts to ensure no interrupts occur while setting up segments.
     xor ax, ax          ; Set AX to 0x0 (which is 0x0 >> 4).
                         ; Explanation: We are using segment:offset addressing in real mode.
@@ -18,18 +18,18 @@ main:                   ; Main routine of the bootloader begins here.
     mov ds, ax          ; Set Data Segment (DS) to 0x0. DS points to the bootloader code/data in memory.
     mov es, ax          ; Set Extra Segment (ES) to 0x0. ES is also set to point to our code/data.
 
-    ; -------------------------
-    ; Setup stack
-    ; -------------------------
+; -------------------------
+; Setup stack
+; -------------------------
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
     mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
                         ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
 
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
-    ; -------------------------
-    ; Load Stage 2 bootloader from disk
-    ; -------------------------
+; -------------------------
+; Load Stage 2 bootloader from disk
+; -------------------------
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
     mov al, 01h         ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
 
