@@ -4,6 +4,11 @@
 # Installation
 This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions.
 
+- **Clone Repository**:
+  
+  ```
+  git clone https://github.com/IlanVinograd/OS_32Bit.git
+  ```
 - **System Requirements**: A basic development environment with Docker installed.
 - **Installation Guide**: Follow the steps below to build and run the OS using Docker.
 - **Booting Instructions**: Run the bootloader through Docker and QEMU.
