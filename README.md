@@ -58,7 +58,6 @@ docker build -t os_32bit .
 - After making changes to your code, **always save your changes** before testing.
 - To test the updated code, **you must run the `docker run` command** again to start a new container with the latest changes.
 
-  For **Command Prompt**:
 
   **CMD**
   ```
