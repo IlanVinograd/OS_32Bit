@@ -111,18 +111,14 @@ restore_registers_a20:
     jmp gdt_setup
 
 ; -------------------------
-; GDT And TSS Setup
+; GDT Setup
 ; -------------------------
 gdt_setup:
     cli                   ; Disable interrupts during GDT setup
     lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
 
-    ; Now load the TSS
-    mov ax, 0x28          ; TSS selector (assuming it's at index 5)
-    ltr ax                ; Load Task Register with TSS selector
-
 ; -------------------------
-; GDT & TSS Success Message
+; GDT Success Message
 ; -------------------------
     xor ax, ax       ; Reset data segment for message output
     mov ds, ax
@@ -162,8 +158,16 @@ pm_start:
     mov fs, ax
     mov gs, ax
     mov ss, ax
+    mov esp, ring0_stack + 4096  ; Initialize the stack pointer
 
-    ; Continue with your kernel code
+    ; Set up Ring 0 stack in TSS
+    mov dword [tss32 + 4], ring0_stack + 4096  ; ESP0
+    mov word [tss32 + 8], 0x10                 ; SS0
+
+    ; Load TSS
+    mov ax, 0x28          ; TSS selector
+    ltr ax                ; Load Task Register with TSS selector
+
     jmp kernel          ; Jump to kernel code
 
 ; -------------------------
@@ -171,44 +175,60 @@ pm_start:
 ; -------------------------
 kernel:
     ; Your 32-bit kernel code goes here
-    hlt                 ; Halt the CPU (placeholder for actual kernel code)
+    sti                 ; Halt the CPU (placeholder for actual kernel code)
 
 ; -------------------------
 ; TSS Structure
 ; -------------------------
+align 16
 tss32:
-    ; The TSS structure begins here
     dw 0                ; Previous Task Link
-    dw 0
-    dd 0                ; esp0 (Ring 0 Stack Pointer)
-    dd 0                ; ss0 (Ring 0 Stack Segment)
-    dd 0                ; esp1
-    dd 0                ; ss1
-    dd 0                ; esp2
-    dd 0                ; ss2
-    dd 0                ; cr3
-    dd 0                ; eip
-    dd 0                ; eflags
-    dd 0                ; eax
-    dd 0                ; ecx
-    dd 0                ; edx
-    dd 0                ; ebx
-    dd 0                ; esp
-    dd 0                ; ebp
-    dd 0                ; esi
-    dd 0                ; edi
-    dd 0                ; es
-    dd 0                ; cs
-    dd 0                ; ss
-    dd 0                ; ds
-    dd 0                ; fs
-    dd 0                ; gs
-    dd 0                ; ldtr
-    dw 0                ; Trap
-    dw 0x0000           ; I/O Map Base Address
+    dw 0                ; Reserved
+    dd 0                ; ESP0
+    dw 0x10             ; SS0 (Ring 0 Data Segment Selector)
+    dw 0                ; Reserved
+    dd 0                ; ESP1
+    dw 0                ; SS1
+    dw 0                ; Reserved
+    dd 0                ; ESP2
+    dw 0                ; SS2
+    dw 0                ; Reserved
+    dd 0                ; CR3
+    dd 0                ; EIP
+    dd 0                ; EFLAGS
+    dd 0                ; EAX
+    dd 0                ; ECX
+    dd 0                ; EDX
+    dd 0                ; EBX
+    dd 0                ; ESP
+    dd 0                ; EBP
+    dd 0                ; ESI
+    dd 0                ; EDI
+    dw 0                ; ES
+    dw 0                ; Reserved
+    dw 0                ; CS
+    dw 0                ; Reserved
+    dw 0                ; SS
+    dw 0                ; Reserved
+    dw 0                ; DS
+    dw 0                ; Reserved
+    dw 0                ; FS
+    dw 0                ; Reserved
+    dw 0                ; GS
+    dw 0                ; Reserved
+    dw 0                ; LDT Selector
+    dw 0                ; Reserved
+    dw 0                ; Trap and I/O Map Base Address
+    dw 0                ; Reserved
 tss32_end:
 
-[BITS 16]   ; Switch back to 16 bits for the rest
+; Calculate the absolute base address of tss32
+tss32_base_address equ 0x8000 + (tss32 - $$)
+
+; Extract base address components
+tss_base_low     equ tss32_base_address & 0xFFFF          ; Lower 16 bits
+tss_base_middle  equ (tss32_base_address >> 16) & 0xFF    ; Next 8 bits
+tss_base_high    equ (tss32_base_address >> 24) & 0xFF    ; Upper 8 bits
 
 ; -------------------------
 ; GDT Definition
@@ -220,7 +240,7 @@ gdt_start:
 
     ; Kernel Code Segment Descriptor (Selector 0x08)
     dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
+    dw 0x8000              ; Base Low
     db 0x00                ; Base Middle
     db 10011010b           ; Access Byte
     db 11001111b           ; Flags and Limit High
@@ -228,7 +248,7 @@ gdt_start:
 
     ; Kernel Data Segment Descriptor (Selector 0x10)
     dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
+    dw 0x8000              ; Base Low
     db 0x00                ; Base Middle
     db 10010010b           ; Access Byte
     db 11001111b           ; Flags and Limit High
@@ -251,16 +271,12 @@ gdt_start:
     db 0x00                ; Base High
 
     ; TSS Descriptor (Selector 0x28)
-    ; Calculate TSS Base and Limit
-tss_base   equ tss32
-tss_limit  equ tss32_end - tss32 - 1
-
-    dw tss_limit & 0xFFFF          ; Limit Low
-    dw tss_base & 0xFFFF           ; Base Low
-    db (tss_base >> 16) & 0xFF     ; Base Middle
-    db 10001001b                   ; Access Byte (Present, Ring 0, Type 1001b = 32-bit Available TSS)
-    db ((tss_limit >> 16) & 0x0F) | (0 << 4) ; Flags (Granularity = 0) and Limit High
-    db (tss_base >> 24) & 0xFF     ; Base High
+    dw tss32_end - tss32 - 1 ; Limit
+    dw tss_base_low          ; Base Low
+    db tss_base_middle       ; Base Middle
+    db 10001001b             ; Access Byte
+    db 00000000b             ; Flags and Limit High
+    db tss_base_high         ; Base High
 
 gdt_end:
 
@@ -272,9 +288,17 @@ gdt_descriptor:
     dd gdt_start                ; Linear address of the GDT
 
 ; -------------------------
+; Memory Allocation
+; -------------------------
+section .bss
+align 16
+ring0_stack:
+    resb 4096  ; Allocate 4KB for the Ring 0 stack
+
+; -------------------------
 ; Messages
 ; -------------------------
 msg_a20_error   db 'A20 line enable         ->   failed ', 0x0D, 0x0A, 0
 msg_a20_enable  db 'A20 line enable         ->   successfully ', 0x0D, 0x0A, 0
 
-msg_gdtss_success db 'GDT and TSS configured  ->   successfully ', 0x0D, 0x0A, 0
+msg_gdtss_success db 'GDT and TSS is configured       ->   successfully ', 0x0D, 0x0A, 0
