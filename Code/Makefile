@@ -35,27 +35,36 @@ output: $(BIN_DIR) $(STAGE1_BIN) $(STAGE2_OBJ) $(KERNEL_BIN) $(IMG)
 
 # Create bin directory if not exists
 $(BIN_DIR):
+	@echo "Creating bin directory..."
 	@mkdir -p $(BIN_DIR)
 
 # Assemble Stage 1 bootloader
 $(STAGE1_BIN): $(STAGE1_SRC) | $(BIN_DIR)
+	@echo "Assembling Stage 1..."
 	@$(NASM) -f bin $(STAGE1_SRC) -o $(STAGE1_BIN)
+	@echo "Stage 1 assembled."
 
 # Assemble Stage 2 into an object file
 $(STAGE2_OBJ): $(STAGE2_SRC) | $(BIN_DIR)
+	@echo "Assembling Stage 2..."
 	@$(NASM) $(NASM_FLAGS) $(STAGE2_SRC) -o $(STAGE2_OBJ)
+	@echo "Stage 2 assembled."
 
 # Compile kernel C source files to object files
 %.o: %.c | $(BIN_DIR)
+	@echo "Compiling $<..."
 	@$(GCC) $(GCC_FLAGS) -c $< -o $@
 
 # Assemble kernel assembly source files to object files
 %.o: %.asm | $(BIN_DIR)
+	@echo "Assembling $<..."
 	@$(NASM) $(NASM_FLAGS) $< -o $@
 
 # Link all object files into the kernel binary
 $(KERNEL_BIN): $(KERNEL_OBJS) $(STAGE2_OBJ) | $(BIN_DIR)
+	@echo "Linking kernel and Stage 2..."
 	@$(LD) $(LD_FLAGS) -o $(KERNEL_BIN) $(KERNEL_OBJS) $(STAGE2_OBJ)
+	@echo "Linking completed."
 
 # Create the bootloader image and write all components
 $(IMG): $(STAGE1_BIN) $(KERNEL_BIN)
