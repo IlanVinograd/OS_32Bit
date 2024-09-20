@@ -1,274 +1,222 @@
-[BITS 16]
-;[org 0x8000]
+%ifndef KERNEL_SECTORS
+%define KERNEL_SECTORS 1 ; default value if not defined
+%endif
 
+[BITS 16]                ; Real mode, 16-bit code
+[ORG 0x0000]
+global a20_status_check
 ; -------------------------
-; A20 Status Check
+; A20 Status Check (16-bit code)
 ; -------------------------
+section .text16
 a20_status_check:
-    pushf               ; Save flags
-    push ds             ; Save data segment
-    push es             ; Save extra segment
-    push di             ; Save destination index
-    push si             ; Save source index
+    ; Save registers
+    pushf
+    push ds
+    push es
+    push di
+    push si
 
-    cli                 ; Disable interrupts during A20 check
+    ; Disable interrupts
+    cli
     xor ax, ax          ; Set AX to 0
     mov es, ax          ; Set extra segment (ES) to 0
-    mov di, 0x0500      ; Set DI to test memory location 0x0500 in low memory
+    mov di, 0x0500      ; Set DI to memory location 0x0500 (low memory)
 
-    not ax              ; Set AX to 0xFFFF (inverted 0)
+    not ax              ; Set AX to 0xFFFF
     mov ds, ax          ; Set data segment (DS) to 0xFFFF
-    mov si, 0x0510      ; Set SI to memory location 0x0510 (also in low memory)
+    mov si, 0x0510      ; Set SI to memory location 0x0510 (low memory)
 
     ; Save original values from memory locations
-    mov al, byte [es:di] ; Load byte at ES:DI into AL
-    push ax              ; Save value from ES:DI
-    mov al, byte [ds:si] ; Load byte at DS:SI into AL
-    push ax              ; Save value from DS:SI
+    mov al, byte [es:di]
+    push ax
+    mov al, byte [ds:si]
+    push ax
 
     ; Modify memory locations for the test
-    mov byte [es:di], 0x00 ; Set ES:DI to 0x00
-    mov byte [ds:si], 0xFF ; Set DS:SI to 0xFF
+    mov byte [es:di], 0x00
+    mov byte [ds:si], 0xFF
 
     ; Check if memory write is visible at ES:DI
-    cmp byte [es:di], 0xFF ; Compare ES:DI with 0xFF
+    cmp byte [es:di], 0xFF
 
     ; Restore original memory values
-    pop ax               ; Restore value from stack to AX
-    mov byte [ds:si], al  ; Restore original byte at DS:SI
-    pop ax               ; Restore value from stack to AX
-    mov byte [es:di], al  ; Restore original byte at ES:DI
+    pop ax
+    mov byte [ds:si], al
+    pop ax
+    mov byte [es:di], al
 
     ; Determine A20 status based on comparison result
-    mov ax, 0            ; Assume A20 is off
-    je status_a20_off     ; Jump if A20 is off
-
-    mov ax, 1            ; A20 is on
-    jmp status_a20_on     ; Jump to A20 enabled handling
+    mov ax, 0
+    je status_a20_off     ; If memory mismatch, A20 is off
+    mov ax, 1
+    jmp status_a20_on     ; If match, A20 is on
 
 ; -------------------------
-; A20 Enable via BIOS Interrupt 15h
+; A20 Enable Handling (16-bit code)
 ; -------------------------
 status_a20_off:
-    mov ax, 0x2401       ; Request to enable A20 via BIOS (INT 15h)
-    int 0x15             ; BIOS interrupt call
+    mov ax, 0x2401        ; Request to enable A20 via BIOS (INT 15h)
+    int 0x15
+    jc a20_error          ; Jump if BIOS failed to enable A20
+    jmp a20_status_check  ; Retry checking A20 status
 
-    jc a20_error         ; If carry flag is set (error), jump to error handler
-    jmp a20_status_check ; Otherwise, recheck A20 status after enabling
-
-; -------------------------
-; A20 Enable Failure Handling
-; -------------------------
 a20_error:
-    xor ax, ax
-    mov ds, ax
-    mov ah, 0x0E         ; Set up for character output
-    mov bh, 0x00         ; Display page number
+    ; Print A20 error message and halt
+    call print_error_msg
+    hlt
 
-    mov si, msg_a20_error ; Load error message into SI
-
-print_error_loop:
-    lodsb                ; Load next byte from message
-    cmp al, 0            ; Check for null terminator
-    je end_error_msg_a20 ; If end of string, stop printing
-    int 0x10             ; Print character in AL
-    jmp print_error_loop ; Loop to print the next character
-
-end_error_msg_a20:
-    hlt                  ; Halt the system
-
-; -------------------------
-; A20 Enable Success Handling
-; -------------------------
 status_a20_on:
+    ; Print A20 enable success message
+    call print_success_msg
+    jmp gdt_setup         ; Proceed to GDT setup
+
+; -------------------------
+; Printing Functions (16-bit code)
+; -------------------------
+print_error_msg:
+    mov si, msg_a20_error
+    call print_string
+    ret
+
+print_success_msg:
+    mov si, msg_a20_enable
+    call print_string
+    ret
+
+print_string:
     xor ax, ax
     mov ds, ax
-    mov ah, 0x0E         ; Set up for character output
-    mov bh, 0x00         ; Display page number
-
-    mov si, msg_a20_enable ; Load success message into SI
-
-print_enable_loop:
-    lodsb                ; Load next byte from message
-    cmp al, 0            ; Check for null terminator
-    je restore_registers_a20 ; If end of string, restore registers
-    int 0x10             ; Print character in AL
-    jmp print_enable_loop ; Loop to print the next character
-
-; -------------------------
-; Restore Registers and Continue
-; -------------------------
-restore_registers_a20:
-    pop si               ; Restore source index
-    pop di               ; Restore destination index
-    pop es               ; Restore extra segment
-    pop ds               ; Restore data segment
-    popf                 ; Restore flags
-
-    sti                  ; Re-enable interrupts
-
-    ; Now proceed to set up GDT and TSS
-    jmp gdt_setup
+    mov ah, 0x0E           ; BIOS teletype function for printing
+    mov bh, 0x00
+print_loop:
+    lodsb                  ; Load byte from string into AL
+    cmp al, 0              ; Check for null terminator
+    je print_done
+    int 0x10               ; Print character
+    jmp print_loop
+print_done:
+    ret
 
 ; -------------------------
-; GDT Setup and TSS Setup
+; GDT Setup (16-bit code)
 ; -------------------------
 gdt_setup:
-    cli                   ; Disable interrupts during GDT setup
-    lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
-
-    call setup_tss
-
-; -------------------------
-; GDT & TSS Success Message
-; -------------------------
-    xor ax, ax
-    mov ds, ax
-    mov ah, 0x0E         ; Set up for character output
-    mov bh, 0x00         ; Display page number
-
-    mov si, msg_gdtss_success ; Load GDT success message into SI
-
-gdtss_print_success:
-    lodsb                   ; Load next byte from message
-    cmp al, 0               ; Check for null terminator
-    je enter_protected_mode     ; If end of string, proceed to protected mode
-    int 0x10                ; Print character in AL
-    jmp gdtss_print_success   ; Loop to print the next character
+    cli                    ; Disable interrupts during setup
+    lgdt [gdt_descriptor]   ; Load GDT descriptor into GDTR
+    call setup_tss          ; Set up the TSS
+    jmp enter_protected_mode ; Jump to protected mode
 
 ; -------------------------
-; Enter Protected Mode
+; Enter Protected Mode (16-bit code)
 ; -------------------------
 enter_protected_mode:
-    cli                 ; Disable interrupts before entering protected mode
+    cli
     mov eax, cr0
-    or eax, 1           ; Set protected mode bit in CR0
+    or eax, 1              ; Set protected mode bit (PE bit) in CR0
     mov cr0, eax
 
-    ; Far jump to update CS with GDT code segment (0x08)
+    ; Far jump to reload CS with GDT code segment selector (0x08)
     jmp 0x08:pm_start
 
 ; -------------------------
-; Protected Mode Code Segment
+; GDT Descriptor and TSS Setup (16-bit code)
 ; -------------------------
-[BITS 32]
+global setup_tss
+setup_tss:
+    lea ax, [tss_start]         ; Load effective address of TSS into AX
+    mov [gdt_tss_base], ax      ; Set lower 16 bits of TSS base in GDT entry
+    shr ax, 16                  ; Get the upper 16 bits
+    mov [gdt_tss_base+2], al
+    mov [gdt_tss_base+7], ah
+    ret
+
+; -------------------------
+; Transition to 32-bit Code
+; -------------------------
+[BITS 32]                ; Protected mode, 32-bit code
+section .text32
+%include "ATA_PIO.asm"
+; -------------------------
+; Protected Mode Start (32-bit code)
+; -------------------------
 pm_start:
-    ; Set up segment registers for protected mode
-    mov ax, 0x10        ; Load GDT data segment selector (0x10)
+    ; Set up data segments for 32-bit mode
+    mov ax, 0x10            ; Data segment selector
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
+    mov esp, 0x9FC00  
+    ; Set up stack pointer (optional, based on your setup)
+    ; mov esp, 0x9FC00      ; Set ESP to a safe location
 
-    ;mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
+    ; Load Task State Segment (TSS)
+    mov ax, 0x28            ; TSS selector
+    ltr ax                  ; Load Task Register
 
-    ; Load TSS
-    mov ax, 0x28          ; TSS selector
-    ltr ax                ; Load Task Register with TSS selector
-
-    jmp kernel          ; Jump to kernel code
-
-; -------------------------
-; Kernel Code
-; -------------------------
-kernel:
-    ; Your 32-bit kernel code goes here
-    hlt
-    sti                 ; Halt the CPU (placeholder for actual kernel code)
+    jmp loadKernel         ; Proceed to kernel load
 
 ; -------------------------
-; TSS Memory Allocation
+; Kernel Code (32-bit code)
 ; -------------------------
-section .bss
-    tss_start: resb 104       ; Reserve 104 bytes for the TSS
-    tss_end:
-
-section .text
-global setup_tss
-setup_tss:
-    ; Get the base address of the TSS at runtime
-    lea ax, [tss_start]          ; Load the effective address of TSS into AX
-
-    ; Set ESP0 (kernel stack pointer) and SS0 (kernel stack selector)
-    mov dword [tss_start + 4], esp0   ; Set the kernel stack pointer (ESP0)
-    mov word [tss_start + 8], ss0     ; Set the kernel stack segment selector (SS0)
-
-    ; Fill the TSS base address into GDT descriptor at runtime
-    mov [gdt_tss_base], ax           ; Set the lower 16 bits (Base Low)
-    shr ax, 16                       ; Get the upper 16 bits of the TSS base address
-    mov [gdt_tss_base + 2], al       ; Set the middle 8 bits (Base Middle)
-    mov [gdt_tss_base + 7], ah       ; Set the upper 8 bits (Base High)
-
-    ret
-
+loadKernel: 
+	mov ebp, 3               ; Starting sector (matching seek=14 in dd)
+    mov ebx, KERNEL_SECTORS   ; Number of sectors to read
+    mov edi, 0x100000         ; Address to load the kernel in memory
+    call read_ata_st
+    jmp 0x100000     
+; -------------------------
+; GDT Definitions (Data Section)
+; -------------------------
 section .data
-esp0:    dd 0x9FC00        ; Define the kernel stack pointer (0x9FC00 is an example)
-ss0:     dw 0x10           ; Define the kernel data segment selector (0x10, corresponding to your GDT)
-
-; -------------------------
-; GDT Definition
-; -------------------------
 gdt_start:
 
-    ; Null Descriptor (Selector 0x00)
+    ; Null Descriptor (0x00)
     dd 0x0
     dd 0x0
 
-    ; Kernel Code Segment Descriptor (Selector 0x08)
-    dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
-    db 0x00                ; Base Middle
-    db 10011010b           ; Access Byte
-    db 11001111b           ; Flags and Limit High
-    db 0x00                ; Base High
+    ; Kernel Code Segment (0x08)
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 10011010b
+    db 11001111b
+    db 0x00
 
-    ; Kernel Data Segment Descriptor (Selector 0x10)
-    dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
-    db 0x00                ; Base Middle
-    db 10010010b           ; Access Byte
-    db 11001111b           ; Flags and Limit High
-    db 0x00                ; Base High
+    ; Kernel Data Segment (0x10)
+    dw 0xFFFF
+    dw 0x0000
+    db 0x00
+    db 10010010b
+    db 11001111b
+    db 0x00
 
-    ; User Code Segment Descriptor (Selector 0x18)
-    dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
-    db 0x00                ; Base Middle
-    db 11111010b           ; Access Byte
-    db 11001111b           ; Flags and Limit High
-    db 0x00                ; Base High
-
-    ; User Data Segment Descriptor (Selector 0x20)
-    dw 0xFFFF              ; Limit Low
-    dw 0x0000              ; Base Low
-    db 0x00                ; Base Middle
-    db 11110010b           ; Access Byte
-    db 11001111b           ; Flags and Limit High
-    db 0x00                ; Base High
-
-    ; TSS Descriptor (Selector 0x28)
+    ; TSS Descriptor (0x28)
 gdt_tss_base:
-    dw tss_end - tss_start - 1   ; Limit (Size of TSS)
-    dw 0x0000                    ; Base Low (to be filled at runtime)
-    db 0x00                      ; Base Middle (to be filled at runtime)
-    db 0x89                      ; Access Byte (TSS descriptor, 32-bit available)
-    db 0x00                      ; Flags and Limit High
-    db 0x00                      ; Base High (to be filled at runtime)
+    dw tss_end - tss_start - 1
+    dw 0x0000
+    db 0x00
+    db 0x89
+    db 0x00
+    db 0x00
 
 gdt_end:
 
-; -------------------------
-; GDT Descriptor
-; -------------------------
 gdt_descriptor:
-    dw gdt_end - gdt_start - 1  ; Size of the GDT (in bytes, minus 1)
-    dd gdt_start                ; Linear address of the GDT
+    dw gdt_end - gdt_start - 1  ; Size of GDT
+    dd gdt_start                ; Address of GDT
 
 ; -------------------------
-; Messages
+; TSS Memory Allocation (BSS Section)
 ; -------------------------
-msg_a20_error   db 'A20 line enable                 ->   failed ', 0x0D, 0x0A, 0
-msg_a20_enable  db 'A20 line enable                 ->   successfully ', 0x0D, 0x0A, 0
+section .bss
+tss_start: resb 104  ; Reserve 104 bytes for TSS
+tss_end:
 
-msg_gdtss_success db 'GDT and TSS is configured       ->   successfully ', 0x0D, 0x0A, 0
+; -------------------------
+; Messages (Data Section)
+; -------------------------
+msg_a20_error   db 'A20 line enable failed', 0x0D, 0x0A, 0
+msg_a20_enable  db 'A20 line enabled successfully', 0x0D, 0x0A, 0
