@@ -178,13 +178,13 @@ pm_start:
 ; Kernel Code
 ; -------------------------
 loadKernel: 
-    mov ebp, 3               ; Starting sector (matching seek=14 in dd)
-    mov ebx, KERNEL_SECTORS   ; Number of sectors to read (KERNEL_SECTORS defined elsewhere)
-    mov edi, 0x100000         ; Address to load the kernel in memory (1MB)
-    call read_ata_st          ; Call the ATA read function to load sectors
-    jmp 0x100000              ; Jump to the kernel's entry point
-    cli                       ; Disable interrupts
-    hlt                       ; Halt the CPU
+	mov ebp, 3               ; Starting sector 
+    mov ebx, KERNEL_SECTORS   ; Number of sectors to read
+    mov edi, 0x100000         ; Address to load the kernel in memory
+    call read_ata_st
+    jmp 0x100000     
+    cli
+    hlt
 ; -------------------------
 ; TSS Memory Allocation
 ; -------------------------
