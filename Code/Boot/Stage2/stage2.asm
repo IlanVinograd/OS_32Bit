@@ -1,6 +1,6 @@
 [BITS 16]
 [org 0x8000]
-
+dd
 ; -------------------------
 ; A20 Status Check
 ; -------------------------
@@ -60,7 +60,7 @@ status_a20_off:
 ; A20 Enable Failure Handling
 ; -------------------------
 a20_error:
-    xor ax, ax           ; Reset segment register for message output
+    xor ax, ax
     mov ds, ax
     mov ah, 0x0E         ; Set up for character output
     mov bh, 0x00         ; Display page number
@@ -81,7 +81,7 @@ end_error_msg_a20:
 ; A20 Enable Success Handling
 ; -------------------------
 status_a20_on:
-    xor ax, ax           ; Reset data segment for message output
+    xor ax, ax
     mov ds, ax
     mov ah, 0x0E         ; Set up for character output
     mov bh, 0x00         ; Display page number
@@ -111,16 +111,18 @@ restore_registers_a20:
     jmp gdt_setup
 
 ; -------------------------
-; GDT Setup
+; GDT Setup and TSS Setup
 ; -------------------------
 gdt_setup:
     cli                   ; Disable interrupts during GDT setup
     lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
 
+    call setup_tss
+
 ; -------------------------
-; GDT Success Message
+; GDT & TSS Success Message
 ; -------------------------
-    xor ax, ax       ; Reset data segment for message output
+    xor ax, ax
     mov ds, ax
     mov ah, 0x0E         ; Set up for character output
     mov bh, 0x00         ; Display page number
@@ -158,11 +160,8 @@ pm_start:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, ring0_stack + 4096  ; Initialize the stack pointer
 
-    ; Set up Ring 0 stack in TSS
-    mov dword [tss32 + 4], ring0_stack + 4096  ; ESP0
-    mov word [tss32 + 8], 0x10                 ; SS0
+    ;mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
 
     ; Load TSS
     mov ax, 0x28          ; TSS selector
@@ -175,60 +174,37 @@ pm_start:
 ; -------------------------
 kernel:
     ; Your 32-bit kernel code goes here
+    hlt
     sti                 ; Halt the CPU (placeholder for actual kernel code)
 
 ; -------------------------
-; TSS Structure
+; TSS Memory Allocation
 ; -------------------------
-align 16
-tss32:
-    dw 0                ; Previous Task Link
-    dw 0                ; Reserved
-    dd 0                ; ESP0
-    dw 0x10             ; SS0 (Ring 0 Data Segment Selector)
-    dw 0                ; Reserved
-    dd 0                ; ESP1
-    dw 0                ; SS1
-    dw 0                ; Reserved
-    dd 0                ; ESP2
-    dw 0                ; SS2
-    dw 0                ; Reserved
-    dd 0                ; CR3
-    dd 0                ; EIP
-    dd 0                ; EFLAGS
-    dd 0                ; EAX
-    dd 0                ; ECX
-    dd 0                ; EDX
-    dd 0                ; EBX
-    dd 0                ; ESP
-    dd 0                ; EBP
-    dd 0                ; ESI
-    dd 0                ; EDI
-    dw 0                ; ES
-    dw 0                ; Reserved
-    dw 0                ; CS
-    dw 0                ; Reserved
-    dw 0                ; SS
-    dw 0                ; Reserved
-    dw 0                ; DS
-    dw 0                ; Reserved
-    dw 0                ; FS
-    dw 0                ; Reserved
-    dw 0                ; GS
-    dw 0                ; Reserved
-    dw 0                ; LDT Selector
-    dw 0                ; Reserved
-    dw 0                ; Trap and I/O Map Base Address
-    dw 0                ; Reserved
-tss32_end:
+section .bss
+    tss_start: resb 104       ; Reserve 104 bytes for the TSS
+    tss_end:
 
-; Calculate the absolute base address of tss32
-tss32_base_address equ 0x8000 + (tss32 - $$)
+section .text
+global setup_tss
+setup_tss:
+    ; Get the base address of the TSS at runtime
+    lea ax, [tss_start]          ; Load the effective address of TSS into AX
 
-; Extract base address components
-tss_base_low     equ tss32_base_address & 0xFFFF          ; Lower 16 bits
-tss_base_middle  equ (tss32_base_address >> 16) & 0xFF    ; Next 8 bits
-tss_base_high    equ (tss32_base_address >> 24) & 0xFF    ; Upper 8 bits
+    ; Set ESP0 (kernel stack pointer) and SS0 (kernel stack selector)
+    mov dword [tss_start + 4], esp0   ; Set the kernel stack pointer (ESP0)
+    mov word [tss_start + 8], ss0     ; Set the kernel stack segment selector (SS0)
+
+    ; Fill the TSS base address into GDT descriptor at runtime
+    mov [gdt_tss_base], ax           ; Set the lower 16 bits (Base Low)
+    shr ax, 16                       ; Get the upper 16 bits of the TSS base address
+    mov [gdt_tss_base + 2], al       ; Set the middle 8 bits (Base Middle)
+    mov [gdt_tss_base + 7], ah       ; Set the upper 8 bits (Base High)
+
+    ret
+
+section .data
+esp0:    dd 0x9FC00        ; Define the kernel stack pointer (0x9FC00 is an example)
+ss0:     dw 0x10           ; Define the kernel data segment selector (0x10, corresponding to your GDT)
 
 ; -------------------------
 ; GDT Definition
@@ -236,11 +212,12 @@ tss_base_high    equ (tss32_base_address >> 24) & 0xFF    ; Upper 8 bits
 gdt_start:
 
     ; Null Descriptor (Selector 0x00)
-    dq 0x0000000000000000
+    dd 0x0
+    dd 0x0
 
     ; Kernel Code Segment Descriptor (Selector 0x08)
     dw 0xFFFF              ; Limit Low
-    dw 0x8000              ; Base Low
+    dw 0x0000              ; Base Low
     db 0x00                ; Base Middle
     db 10011010b           ; Access Byte
     db 11001111b           ; Flags and Limit High
@@ -248,7 +225,7 @@ gdt_start:
 
     ; Kernel Data Segment Descriptor (Selector 0x10)
     dw 0xFFFF              ; Limit Low
-    dw 0x8000              ; Base Low
+    dw 0x0000              ; Base Low
     db 0x00                ; Base Middle
     db 10010010b           ; Access Byte
     db 11001111b           ; Flags and Limit High
@@ -271,12 +248,13 @@ gdt_start:
     db 0x00                ; Base High
 
     ; TSS Descriptor (Selector 0x28)
-    dw tss32_end - tss32 - 1 ; Limit
-    dw tss_base_low          ; Base Low
-    db tss_base_middle       ; Base Middle
-    db 10001001b             ; Access Byte
-    db 00000000b             ; Flags and Limit High
-    db tss_base_high         ; Base High
+gdt_tss_base:
+    dw tss_end - tss_start - 1   ; Limit (Size of TSS)
+    dw 0x0000                    ; Base Low (to be filled at runtime)
+    db 0x00                      ; Base Middle (to be filled at runtime)
+    db 0x89                      ; Access Byte (TSS descriptor, 32-bit available)
+    db 0x00                      ; Flags and Limit High
+    db 0x00                      ; Base High (to be filled at runtime)
 
 gdt_end:
 
@@ -288,17 +266,9 @@ gdt_descriptor:
     dd gdt_start                ; Linear address of the GDT
 
 ; -------------------------
-; Memory Allocation
-; -------------------------
-section .bss
-align 16
-ring0_stack:
-    resb 4096  ; Allocate 4KB for the Ring 0 stack
-
-; -------------------------
 ; Messages
 ; -------------------------
-msg_a20_error   db 'A20 line enable         ->   failed ', 0x0D, 0x0A, 0
-msg_a20_enable  db 'A20 line enable         ->   successfully ', 0x0D, 0x0A, 0
+msg_a20_error   db 'A20 line enable                 ->   failed ', 0x0D, 0x0A, 0
+msg_a20_enable  db 'A20 line enable                 ->   successfully ', 0x0D, 0x0A, 0
 
 msg_gdtss_success db 'GDT and TSS is configured       ->   successfully ', 0x0D, 0x0A, 0
