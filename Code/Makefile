@@ -23,60 +23,47 @@ QEMU_IMG := qemu-img
 DD := dd
 
 # Flags
-NASM_FLAGS := -f bin
-GCC_FLAGS := -Ttext 0x8000 -ffreestanding -mno-red-zone -m32
+NASM_FLAGS := -f elf32
+GCC_FLAGS := -ffreestanding -mno-red-zone -m32 -g
 LD_FLAGS := -T $(PROJECT_ROOT)/link.ld
 BIN_DIR := $(PROJECT_ROOT)/bin
 
 # Build everything: bootloader and kernel
-output: $(BIN_DIR) $(STAGE1_BIN) $(STAGE2_OBJ) kernel $(IMG)
+output: $(BIN_DIR) $(STAGE1_BIN) $(STAGE2_OBJ) $(KERNEL_BIN) $(IMG)
 	@echo "Build complete. Final contents of bin directory:"
 	@ls -l $(BIN_DIR)
 
 # Create bin directory if not exists
 $(BIN_DIR):
-	@echo "Creating bin directory..."
 	@mkdir -p $(BIN_DIR)
 
-# Assemble bootloader stages
+# Assemble Stage 1 bootloader
 $(STAGE1_BIN): $(STAGE1_SRC) | $(BIN_DIR)
-	@echo "Assembling Stage 1..."
-	$(NASM) $(NASM_FLAGS) "$(STAGE1_SRC)" -o "$(STAGE1_BIN)" || exit 1
-	@echo "Stage 1 assembled."
+	@$(NASM) -f bin $(STAGE1_SRC) -o $(STAGE1_BIN)
 
 # Assemble Stage 2 into an object file
 $(STAGE2_OBJ): $(STAGE2_SRC) | $(BIN_DIR)
-	@echo "Assembling Stage 2..."
-	$(NASM) -f elf32 "$(STAGE2_SRC)" -o "$(STAGE2_OBJ)" || exit 1
-	@echo "Stage 2 assembled."
+	@$(NASM) $(NASM_FLAGS) $(STAGE2_SRC) -o $(STAGE2_OBJ)
 
 # Compile kernel C source files to object files
 %.o: %.c | $(BIN_DIR)
-	@echo "Compiling $<..."
-	$(GCC) $(GCC_FLAGS) -c "$<" -o "$@" || exit 1
+	@$(GCC) $(GCC_FLAGS) -c $< -o $@
 
 # Assemble kernel assembly source files to object files
 %.o: %.asm | $(BIN_DIR)
-	@echo "Assembling $<..."
-	$(NASM) -f elf32 "$<" -o "$@" || exit 1
+	@$(NASM) $(NASM_FLAGS) $< -o $@
 
 # Link all object files into the kernel binary
-kernel: $(KERNEL_OBJS) $(STAGE2_OBJ) | $(BIN_DIR)
-	@echo "Linking kernel and Stage 2..."
-	@ls -l $(BIN_DIR)
-	$(LD) $(LD_FLAGS) -o $(KERNEL_BIN) $(KERNEL_OBJS) $(STAGE2_OBJ) || exit 1
+$(KERNEL_BIN): $(KERNEL_OBJS) $(STAGE2_OBJ) | $(BIN_DIR)
+	@$(LD) $(LD_FLAGS) -o $(KERNEL_BIN) $(KERNEL_OBJS) $(STAGE2_OBJ)
 
 # Create the bootloader image and write all components
 $(IMG): $(STAGE1_BIN) $(KERNEL_BIN)
-	@echo "Creating bootloader.img..."
-	$(QEMU_IMG) create -f raw "$(IMG)" 10M
-	@echo "Writing Stage 1..."
-	$(DD) if=$(STAGE1_BIN) of=$(IMG) bs=512 count=1 conv=notrunc
-	@echo "Writing Kernel..."
-	$(DD) if=$(KERNEL_BIN) of=$(IMG) bs=512 seek=100 conv=notrunc
-	@echo "Bootloader image created."
+	@$(QEMU_IMG) create -f raw $(IMG) 10M
+	@$(DD) if=$(STAGE1_BIN) of=$(IMG) bs=512 count=1 conv=notrunc
+	@$(DD) if=$(KERNEL_BIN) of=$(IMG) bs=512 seek=1 conv=notrunc
 
 # Clean all generated files
 clean:
 	@echo "Cleaning up..."
-	rm -f $(STAGE1_BIN) $(STAGE2_OBJ) $(KERNEL_OBJS) $(KERNEL_BIN) $(IMG)
+	@rm -rf $(BIN_DIR) $(IMG)

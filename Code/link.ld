@@ -1,21 +1,22 @@
-ENTRY(start)
+ENTRY(_start)
 
 SECTIONS
 {
-    /* Place the kernel at the 0x10000 address */
-    . = 0x10000;
+    . = 0x8000;
 
-    /* The text section for the code */
-    .text : {
-        *(.text)
+    .text16 : {
+        *(.text16)
     }
 
-    /* The data section for initialized data */
+    . = ALIGN(16);
+
+    .text32 : {
+        *(.text32)
+    }
     .data : {
         *(.data)
     }
 
-    /* The BSS section for uninitialized data */
     .bss : {
         *(.bss)
     }
