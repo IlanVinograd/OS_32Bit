@@ -19,6 +19,6 @@ void print_string(const char *message) {
 }
 
 void kernel_main(void) {
-    ///clear_screen(); 
+    clear_screen(); 
     print_string("Hello World!");
 }

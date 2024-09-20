@@ -54,4 +54,4 @@ WORKDIR /usr/src/bootloader
 COPY . /usr/src/bootloader
 
 # Build the bootloader and run it in QEMU
-CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -nographic -serial mon:stdio"]
+CMD ["sh", "-c", "make clean && make output VERBOSE=1 && qemu-system-x86_64 -drive format=raw,file=bootloader.img -nographic -serial mon:stdio"]

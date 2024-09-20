@@ -28,11 +28,6 @@ GCC_FLAGS := -ffreestanding -mno-red-zone -m32 -g
 LD_FLAGS := -T $(PROJECT_ROOT)/link.ld
 BIN_DIR := $(PROJECT_ROOT)/bin
 
-# Build everything: bootloader and kernel
-output: $(BIN_DIR) $(STAGE1_BIN) $(STAGE2_OBJ) $(KERNEL_BIN) $(IMG)
-	@echo "Build complete. Final contents of bin directory:"
-	@ls -l $(BIN_DIR)
-
 # Create bin directory if not exists
 $(BIN_DIR):
 	@echo "Creating bin directory..."
@@ -54,11 +49,13 @@ $(STAGE2_OBJ): $(STAGE2_SRC) | $(BIN_DIR)
 %.o: %.c | $(BIN_DIR)
 	@echo "Compiling $<..."
 	@$(GCC) $(GCC_FLAGS) -c $< -o $@
+	@echo "Compiled $< to $@"
 
 # Assemble kernel assembly source files to object files
 %.o: %.asm | $(BIN_DIR)
 	@echo "Assembling $<..."
 	@$(NASM) $(NASM_FLAGS) $< -o $@
+	@echo "Assembled $< to $@"
 
 # Link all object files into the kernel binary
 $(KERNEL_BIN): $(KERNEL_OBJS) $(STAGE2_OBJ) | $(BIN_DIR)
@@ -71,6 +68,11 @@ $(IMG): $(STAGE1_BIN) $(KERNEL_BIN)
 	@$(QEMU_IMG) create -f raw $(IMG) 10M
 	@$(DD) if=$(STAGE1_BIN) of=$(IMG) bs=512 count=1 conv=notrunc
 	@$(DD) if=$(KERNEL_BIN) of=$(IMG) bs=512 seek=1 conv=notrunc
+
+# Build everything: bootloader and kernel
+output: $(BIN_DIR) $(STAGE1_BIN) $(STAGE2_OBJ) $(KERNEL_BIN) $(IMG)
+	@echo "Build complete. Final contents of bin directory:"
+	@ls -l $(BIN_DIR)
 
 # Clean all generated files
 clean:
