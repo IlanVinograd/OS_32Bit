@@ -1,5 +1,4 @@
 [BITS 32]
-section .text32
 global read_ata_st
 read_ata_st:
 	push edx
