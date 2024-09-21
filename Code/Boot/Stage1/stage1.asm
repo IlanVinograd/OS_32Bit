@@ -31,7 +31,7 @@ main:                   ; Main routine of the bootloader begins here.
 ; Load Stage 2 bootloader from disk
 ; -------------------------
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
-    mov al, 02h         ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
+    mov al, 63h         ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
 
     mov ch, 00h         ; Set Cylinder number to 0 (since both Stage 1 and Stage 2 are on Cylinder 0).
     mov cl, 02h         ; Set Sector number to 2 (Stage 1 is in Sector 1, so Stage 2 starts at Sector 2).
