@@ -30,10 +30,6 @@ GCC_FLAGS := -ffreestanding -mno-red-zone -m32 -g
 LD_KERNEL := -T $(PROJECT_ROOT)/linker.ld
 BIN_DIR := $(PROJECT_ROOT)/bin
 
-# Calculate kernel sectors for loading
-KERNEL_SIZE := $(shell wc -c < $(KERNEL_BIN))
-KERNEL_SECTORS := $(shell echo $$(( ($(KERNEL_SIZE) + 511) / 512 )))
-
 # Create bin directory if it doesn't exist
 $(BIN_DIR):
 	@echo "Creating bin directory..."
@@ -44,12 +40,6 @@ $(STAGE1_BIN): $(STAGE1_SRC) | $(BIN_DIR)
 	@echo "Assembling Stage 1..."
 	@$(NASM) -f bin $(STAGE1_SRC) -o $(STAGE1_BIN)
 	@echo "Stage 1 assembled."
-
-# Assemble Stage 2 bootloader into a flat binary
-$(STAGE2_BIN): $(STAGE2_SRC) $(KERNEL_BIN) | $(BIN_DIR)
-	@echo "Assembling Stage 2..."
-	@$(NASM) -f bin $(STAGE2_SRC) -o $(STAGE2_BIN) -D KERNEL_SECTORS=$(KERNEL_SECTORS)
-	@echo "Stage 2 assembled."
 
 # Assemble kernel entry ASM file
 $(KERNEL_ASM_OBJ): $(KERNEL_ASM_SRC) | $(BIN_DIR)
@@ -68,6 +58,16 @@ $(KERNEL_BIN): $(KERNEL_C_OBJS) $(KERNEL_ASM_OBJ)
 	@echo "Linking kernel..."
 	@$(LD) $(LD_KERNEL) -o $(KERNEL_BIN) $(KERNEL_ASM_OBJ) $(KERNEL_C_OBJS)
 	@echo "Kernel linked."
+
+# Calculate kernel sectors for loading
+KERNEL_SIZE := $(shell wc -c < $(KERNEL_BIN))
+KERNEL_SECTORS := $(shell echo $$(( ($(KERNEL_SIZE) + 511) / 512 )))
+
+# Assemble Stage 2 bootloader into a flat binary
+$(STAGE2_BIN): $(STAGE2_SRC) $(KERNEL_BIN) | $(BIN_DIR)
+	@echo "Assembling Stage 2..."
+	@$(NASM) -f bin $(STAGE2_SRC) -o $(STAGE2_BIN) -D KERNEL_SECTORS=$(KERNEL_SECTORS)
+	@echo "Stage 2 assembled."
 
 # Build the bootloader disk image
 $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)

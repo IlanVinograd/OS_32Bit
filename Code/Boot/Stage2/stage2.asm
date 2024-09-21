@@ -164,11 +164,6 @@ enter_protected_mode:
     or eax, 1           ; Set protected mode bit
     mov cr0, eax
 
-     mov ah, 0x0E
-    mov al, 'A'         ; Print 'A' for after protected mode
-    int 0x10
-
-    
     jmp 0x08:pm_start   ; Far jump to 32-bit code
 load_error:
     mov ah, 0x0E        ; BIOS function to print character
@@ -191,12 +186,6 @@ pm_start:
     mov ss, ax
 
     mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
-
-    ; Debug prints after entering protected mode
-    mov ah, 0x0E
-    mov al, 'P'         ; Print 'P' for Protected Mode
-    int 0x10
-
 
     ; Load TSS
     mov ax, 0x28        ; TSS selector
