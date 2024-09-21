@@ -104,9 +104,7 @@ restore_registers_a20:
     pop es               ; Restore extra segment
     pop ds               ; Restore data segment
     popf                 ; Restore flags
-
-    sti                  ; Re-enable interrupts
-
+    
     ; Now proceed to set up GDT and TSS
     jmp gdt_setup
 
@@ -114,7 +112,7 @@ restore_registers_a20:
 ; GDT Setup and TSS Setup
 ; -------------------------
 gdt_setup:
-    cli                   ; Disable interrupts during GDT setup
+    cli
     lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
 
     call setup_tss
@@ -140,42 +138,33 @@ gdtss_print_success:
 ; Enter Protected Mode
 ; -------------------------
 enter_protected_mode:
-    cli                 ; Disable interrupts before entering protected mode
     mov eax, cr0
     or eax, 1           ; Set protected mode bit in CR0
     mov cr0, eax
 
-    ; Far jump to update CS with GDT code segment (0x08)
     jmp 0x08:pm_start
-
 ; -------------------------
 ; Protected Mode Code Segment
 ; -------------------------
 [BITS 32]
 pm_start:
-    ; Set up segment registers for protected mode
-    mov ax, 0x10        ; Load GDT data segment selector (0x10)
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-
-    ;mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
+    cli
+    mov ax,10h
+    mov ds,ax
+    mov es,ax
+    mov fs,ax
+    mov gs,ax
+    mov ss,ax
 
     ; Load TSS
     mov ax, 0x28          ; TSS selector
     ltr ax                ; Load Task Register with TSS selector
 
-    jmp kernel          ; Jump to kernel code
-
 ; -------------------------
 ; Kernel Code
 ; -------------------------
 kernel:
-    ; Your 32-bit kernel code goes here
-    hlt
-    sti                 ; Halt the CPU (placeholder for actual kernel code)
+    jmp 0x08:0x10000
 
 ; -------------------------
 ; TSS Memory Allocation

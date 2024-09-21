@@ -1,9 +1,8 @@
 [BITS 16]               ; We are working in 16-bit Real Mode
 [org 0x7c00]            ; The origin (starting address) of the bootloader in memory, which is 0x7C00 as loaded by the BIOS.
                         ; This is the physical address where the bootloader is loaded into memory.
-
 start:                  ; Start of execution, this label marks the entry point of the code.
-    jmp main            ; Jump to the 'main' label to start execution.
+    jmp 0x0000:main            ; Jump to the 'main' label to start execution.
 
 main:                   ; Main routine of the bootloader begins here.
 
