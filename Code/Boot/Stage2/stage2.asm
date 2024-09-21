@@ -1,5 +1,5 @@
 %ifndef KERNEL_SECTORS
-%define KERNEL_SECTORS 1 
+%define KERNEL_SECTORS 1
 %endif
 
 [BITS 16]
@@ -145,19 +145,43 @@ gdtss_print_success:
 ; -------------------------
 enter_protected_mode:
     cli                 ; Disable interrupts before entering protected mode
+
+    mov ah, 0x0E
+    mov al, 'B'         ; Print 'B' for before protected mode
+    int 0x10
+
+    mov ah, 0x02        ; BIOS function to read sectors
+    mov al, KERNEL_SECTORS ; Number of sectors to read
+    mov ch, 0x00        ; Cylinder number (0)
+    mov cl, 0x03        ; Sector number (starts at sector 3)
+    mov dh, 0x00        ; Head number (0)
+    mov dl, 0x80        ; Drive number (0x80 = primary hard disk)
+    mov bx, load_segment      ; Destination address (0x1000 segment = 0x100000)
+    int 0x13            ; Call BIOS interrupt
+    jc load_error       ; Jump if error
+
     mov eax, cr0
-    or eax, 1           ; Set protected mode bit in CR0
+    or eax, 1           ; Set protected mode bit
     mov cr0, eax
 
-    ; Far jump to update CS with GDT code segment (0x08)
-    jmp 0x08:pm_start
+     mov ah, 0x0E
+    mov al, 'A'         ; Print 'A' for after protected mode
+    int 0x10
+
+    
+    jmp 0x08:pm_start   ; Far jump to 32-bit code
+load_error:
+    mov ah, 0x0E        ; BIOS function to print character
+    mov al, 'E'         ; Print 'E' for error
+    int 0x10            ; Call BIOS interrupt to print
+    hlt
 
 ; -------------------------
 ; Protected Mode Code Segment
 ; -------------------------
 [BITS 32]
-%include "ATA_PIO.asm"
 pm_start:
+
     ; Set up segment registers for protected mode
     mov ax, 0x10        ; Load GDT data segment selector (0x10)
     mov ds, ax
@@ -166,25 +190,20 @@ pm_start:
     mov gs, ax
     mov ss, ax
 
-    ;mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
+    mov esp, 0x9FC00    ; Set ESP to a safe location within the segment
+
+    ; Debug prints after entering protected mode
+    mov ah, 0x0E
+    mov al, 'P'         ; Print 'P' for Protected Mode
+    int 0x10
+
 
     ; Load TSS
-    mov ax, 0x28          ; TSS selector
-    ltr ax                ; Load Task Register with TSS selector
+    mov ax, 0x28        ; TSS selector
+    ltr ax              ; Load Task Register with TSS selector
 
-    jmp loadKernel          ; Jump to kernel code
-
-; -------------------------
-; Kernel Code
-; -------------------------
-loadKernel: 
-	mov ebp, 3               ; Starting sector 
-    mov ebx, KERNEL_SECTORS   ; Number of sectors to read
-    mov edi, 0x100000         ; Address to load the kernel in memory
-    call read_ata_st
-    jmp 0x100000     
-    cli
-    hlt
+    call run_offset
+    jmp $
 ; -------------------------
 ; TSS Memory Allocation
 ; -------------------------
@@ -280,3 +299,5 @@ msg_a20_error   db 'A20 line enable                 ->   failed ', 0x0D, 0x0A, 0
 msg_a20_enable  db 'A20 line enable                 ->   successfully ', 0x0D, 0x0A, 0
 
 msg_gdtss_success db 'GDT and TSS is configured       ->   successfully ', 0x0D, 0x0A, 0
+load_segment equ 0x1000
+run_offset equ 0x100000
