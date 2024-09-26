@@ -9,6 +9,7 @@ main:                   ; Main routine of the bootloader begins here.
 ; -------------------------
 ; Setup segment registers
 ; -------------------------
+    cld                 ; Set direction forward (DF=0) for string instructions (STOS, LODS, CMPS etc)
     cli                 ; Clear interrupts to ensure no interrupts occur while setting up segments.
     xor ax, ax          ; Set AX to 0x0 (which is 0x0 >> 4).
                         ; Explanation: We are using segment:offset addressing in real mode.
