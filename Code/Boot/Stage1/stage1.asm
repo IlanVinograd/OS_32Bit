@@ -24,7 +24,7 @@ main:                   ; Main routine of the bootloader begins here.
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
     mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
                         ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
-
+    pop dx             ; Save the DL register with the boot drive
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
 ; -------------------------

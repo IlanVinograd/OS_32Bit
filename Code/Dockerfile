@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     libmpc-dev \
     libmpfr-dev \
     texinfo \
+    x11-apps \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and build the i686-elf cross-compiler
@@ -44,5 +45,5 @@ WORKDIR /usr/src/bootloader
 # Copy all files from the current directory to the Docker container
 COPY . /usr/src/bootloader
 
-# Compile and run the bootloader and kernel
-CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -nographic -serial mon:stdio"]
+# Compile and run the bootloader and kernel, with GUI enabled
+CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -display gtk"]

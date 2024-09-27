@@ -1,6 +1,13 @@
 [BITS 16]
 [org 0x8000]
 
+; Kernel sectors to read
+KERNEL_SECTORS     equ 0x0a
+KERNEL_LOAD_SEG    equ 0x1000
+KERNEL_LOAD_OFFSET equ 0x0000
+KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
+KERNEL_RUN_ADDR    equ 0x100000
+
 TSS_ADDR_HI_BYTE_OFFSET equ 5
 TSS_ACCESS_BYTE_OFFSET  equ 7
 
@@ -39,6 +46,7 @@ init_tss:
 ; -------------------------
 a20_enable:
     pushf               ; Save flags
+    push dx             ; Save DX register with boot drive
     push ds             ; Save data segment
     push es             ; Save extra segment
     push di             ; Save destination index
@@ -73,25 +81,27 @@ restore_registers_a20:
     pop di               ; Restore destination index
     pop es               ; Restore extra segment
     pop ds               ; Restore data segment
+    pop dx               ; Restore DX register
     popf                 ; Restore flags
  
     sti                  ; Re-enable interrupts
 
-
 ; -------------------------
 ; Load kernel from disk
 ; -------------------------
+     mov ax, KERNEL_LOAD_SEG
+                        ; Load 0x1000 (segment for 1MB) into AX
+    mov es, ax          ; Move AX (0x1000) into ES
+    mov bx, KERNEL_LOAD_OFFSET
+                        ; Offset within the segment
+
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
-    mov al, 0Ah         ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
+    mov al, KERNEL_SECTORS
+                        ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
 
     mov ch, 00h         ; Set Cylinder number to 0 (since both Stage 1 and Stage 2 are on Cylinder 0).
-    mov cl, 02h         ; Set Sector number to 2 (Stage 1 is in Sector 1, so Stage 2 starts at Sector 2).
+    mov cl, 03h         ; Set Sector number to 2 (Stage 1 is in Sector 1, so Stage 2 starts at Sector 2).
     mov dh, 00h         ; Set Head number to 0 (assuming we are using Head 0 for now).
-    mov dl, 80h         ; Use the first hard drive (usually 0x80 for the primary hard disk).
-
-    mov ax, 0x1000      ; Load 0x1000 (segment for 1MB) into AX
-    mov es, ax          ; Move AX (0x1000) into ES
-    mov bx, 0x0000      ; Offset within the segment
 
     int 13h
 
@@ -164,7 +174,14 @@ update_segments:
 ; Kernel Code
 ; -------------------------
 kernel:
-    jmp 0x08:0x100000
+    ; Copy the kernel from 0x10000 to 0x100000
+    cld
+    mov esi, KERNEL_LOAD_ADDR
+    mov edi, KERNEL_RUN_ADDR
+    mov ecx, KERNEL_SECTORS * 512
+    rep movsb
+
+    jmp 0x08:KERNEL_RUN_ADDR
 
 ; -------------------------
 ; GDT Descriptor and TSS
