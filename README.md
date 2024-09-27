@@ -62,14 +62,14 @@ docker build -t os_32bit .
 
   **CMD**
   ```
-  docker run --rm -v %cd%\Code:/usr/src/bootloader os_32bit
+  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v %cd%\Code:/usr/src/bootloader os_32bit
   ```
 
   **OR**
 
   **Powershell**
   ```
-  docker run --rm -v ${PWD}\Code:/usr/src/bootloader os_32bit
+  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
   ```
 
 # Technical Details
