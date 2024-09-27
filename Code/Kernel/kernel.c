@@ -19,6 +19,6 @@ void print_string(const char *message) {
 
 void _start(void) {
     clear_screen();
-    print_string("Hello, Kernel World!");
+    print_string("Hello, Kernel World! ;D");
     while(1);
 }
