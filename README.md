@@ -10,6 +10,7 @@ This section provides the necessary steps for installing the operating system, i
   git clone https://github.com/IlanVinograd/OS_32Bit.git
   ```
 - **System Requirements**: A basic development environment with Docker installed.
+- **For GUI QEMU**: Required install -> [VcXsrv](https://sourceforge.net/projects/vcxsrv/), When you start VcXsrv, choose "Multiple Windows" and ensure that "Disable access control" is checked.
 - **Installation Guide**: Follow the steps below to build and run the OS using Docker.
 - **Booting Instructions**: Run the bootloader through Docker and QEMU.
 
@@ -26,14 +27,14 @@ docker build -t os_32bit .
 
   **CMD**
   ```
-  docker run --rm -v %cd%\Code:/usr/src/bootloader os_32bit
+  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v %cd%\Code:/usr/src/bootloader os_32bit
   ```
 
   **OR**
   
   **Powershell**
   ```
-  docker run --rm -v ${PWD}\Code:/usr/src/bootloader os_32bit
+  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
   ```
 ## Cleaning Up Containers
 - You can stop and remove all running and stopped containers using the commands below.
