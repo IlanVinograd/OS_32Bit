@@ -1,15 +1,15 @@
 [BITS 16]               ; We are working in 16-bit Real Mode
 [org 0x7c00]            ; The origin (starting address) of the bootloader in memory, which is 0x7C00 as loaded by the BIOS.
                         ; This is the physical address where the bootloader is loaded into memory.
-
 start:                  ; Start of execution, this label marks the entry point of the code.
-    jmp main            ; Jump to the 'main' label to start execution.
+    jmp 0x0000:main            ; Jump to the 'main' label to start execution.
 
 main:                   ; Main routine of the bootloader begins here.
 
 ; -------------------------
 ; Setup segment registers
 ; -------------------------
+    cld                 ; Set direction forward (DF=0) for string instructions (STOS, LODS, CMPS etc)
     cli                 ; Clear interrupts to ensure no interrupts occur while setting up segments.
     xor ax, ax          ; Set AX to 0x0 (which is 0x0 >> 4).
                         ; Explanation: We are using segment:offset addressing in real mode.
@@ -24,7 +24,7 @@ main:                   ; Main routine of the bootloader begins here.
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
     mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
                         ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
-
+    pop dx             ; Save the DL register with the boot drive
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
 ; -------------------------
