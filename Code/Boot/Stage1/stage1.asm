@@ -24,7 +24,7 @@ main:                   ; Main routine of the bootloader begins here.
     mov ss, ax          ; Set Stack Segment (SS) to 0 (base of memory).
     mov sp, 0xFFFE      ; Set the Stack Pointer (SP) to the highest address within the current 64KB segment (0x0000:0xFFFE).
                         ; In real mode, the stack grows downward from 0xFFFE and 0xFFFE should be set to an even offset like 0xFFFE, not an odd one.
-    pop dx             ; Save the DL register with the boot drive
+    push dx             ; Save the DL register with the boot drive
     sti                 ; Re-enable interrupts after segment and stack setup is complete.
 
 ; -------------------------
@@ -48,6 +48,7 @@ main:                   ; Main routine of the bootloader begins here.
     jc disk_read_error  ; If carry flag is set (indicating an error), jump to the error handler.
 
 pass:                   ; If the disk read was successful (carry flag is cleared), continue from here.
+    pop dx              ; Restore the DL register containing the boot drive in DL
     jmp 0x0000:0x8000   ; Jump to the loaded Stage 2 at address 0x0000:0x8000 (this is where Stage 2 resides).
                         ; Here, 0x0000 is the segment, and 0x8000 is the offset.
                         ; Physical address = 0x0000 * 16 + 0x8000 = 0x8000, where Stage 2 is loaded.
