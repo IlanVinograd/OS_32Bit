@@ -9,24 +9,24 @@ BINS := $(PROJECT_ROOT)/Kernel/Bins
 # Source files
 STAGE1_SRC := $(PROJECT_ROOT)/Boot/Stage1/stage1.asm
 STAGE2_SRC := $(PROJECT_ROOT)/Boot/Stage2/stage2.asm
-KERNEL_SRC := $(SOURCES)/kernel.c
-KERNEL_ENTRY := $(SOURCES)/kernel_entry.s
-VGA_SRC := $(SOURCES)/vga.c
-IO_SRC := $(SOURCES)/io.c
 LINKER_SCRIPT := $(PROJECT_ROOT)/linker.ld
+
+# Найти все .c файлы в папке Sources
+C_SOURCES := $(wildcard $(SOURCES)/*.c)
+
+# Сгенерировать объектные файлы для всех .c файлов
+C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
+
+# Добавляем kernel_entry.s отдельно, так как это файл на ассемблере
+ASM_SOURCES := $(SOURCES)/kernel_entry.s
+ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 
 # Output binaries and objects
 STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
 STAGE2_BIN := $(PROJECT_ROOT)/Boot/Stage2/stage2.bin
-KERNEL_BIN := $(BINS)/kernel.bin
 KERNEL_ELF := $(BINS)/kernel.elf
+KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
-
-# Object files
-KERNEL_OBJ := $(OBJECTS)/kernel.o
-VGA_OBJ := $(OBJECTS)/vga.o
-IO_OBJ := $(OBJECTS)/io.o
-KERNEL_ENTRY_OBJ := $(OBJECTS)/kernel_entry.o
 
 # Compiler and Assembler Flags
 CFLAGS := -I$(INCLUDES) -ffreestanding
@@ -55,14 +55,20 @@ $(STAGE2_BIN): $(STAGE2_SRC)
 	$(NASM) -f bin "$(STAGE2_SRC)" -o "$(STAGE2_BIN)"
 
 # Compile and link the kernel, generate kernel.elf and kernel.bin
-$(KERNEL_BIN): $(OBJECTS) $(BINS) $(KERNEL_SRC) $(KERNEL_ENTRY) $(VGA_SRC) $(IO_SRC) $(LINKER_SCRIPT)
+$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(LINKER_SCRIPT)
 	@echo "Compiling and linking Kernel..."
-	i686-elf-gcc $(CFLAGS) -c "$(KERNEL_SRC)" -o "$(KERNEL_OBJ)"
-	i686-elf-gcc $(CFLAGS) -c "$(KERNEL_ENTRY)" -o "$(KERNEL_ENTRY_OBJ)"
-	i686-elf-gcc $(CFLAGS) -c "$(VGA_SRC)" -o "$(VGA_OBJ)"  # Compile vga.c
-	i686-elf-gcc $(CFLAGS) -c "$(IO_SRC)" -o "$(IO_OBJ)"  # Compile io.c
-	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(KERNEL_OBJ) $(KERNEL_ENTRY_OBJ) $(VGA_OBJ) $(IO_OBJ)  # Link io.o
+	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS)
 	i686-elf-objcopy -O binary $(KERNEL_ELF) $(KERNEL_BIN)
+
+# Rule to compile C source files into object files
+$(OBJECTS)/%.o: $(SOURCES)/%.c
+	@echo "Compiling $<..."
+	i686-elf-gcc $(CFLAGS) -c $< -o $@
+
+# Rule to assemble assembly files into object files
+$(OBJECTS)/%.o: $(SOURCES)/%.s
+	@echo "Assembling $<..."
+	i686-elf-gcc $(CFLAGS) -c $< -o $@
 
 # Create bootloader.img
 $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
@@ -76,7 +82,7 @@ $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
 clean:
 	@echo "Cleaning up..."
 	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(KERNEL_BIN)" "$(KERNEL_ELF)" "$(IMG)" \
-	      "$(KERNEL_OBJ)" "$(KERNEL_ENTRY_OBJ)" "$(VGA_OBJ)" "$(IO_OBJ)"
+	      $(C_OBJECTS) $(ASM_OBJECTS)
 
 # Phony targets
 .PHONY: clean output
