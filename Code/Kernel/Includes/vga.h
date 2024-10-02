@@ -2,7 +2,7 @@
 #define _VGA_H_
 
 #include <stdint.h>
-#include <../Includes/io.h>
+#include <io.h>
 
 #define VGA_VIDEO_MEMORY 0xB8000
 #define VGA_ROWS 25
@@ -13,7 +13,7 @@ void clearScreen(void);
 void initScreen(void);
 void printf(const char *str);
 void setCursorPosition(uint16_t row, uint16_t col);
-void getCursorPosition(uint16_t *row, uint16_t *col);
+uint16_t getCursorPosition(void);
 void setColor(uint8_t color);
 
 #endif /* _VGA_H_ */
