@@ -4,5 +4,7 @@
 #include <vga.h>
 #include <stdint.h>
 #include <io.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
 #endif
