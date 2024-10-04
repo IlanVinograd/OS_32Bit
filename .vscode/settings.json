@@ -3,6 +3,7 @@
         "vga.h": "c",
         "stdint.h": "c",
         "stdarg.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "kernel.h": "c"
     }
 }
