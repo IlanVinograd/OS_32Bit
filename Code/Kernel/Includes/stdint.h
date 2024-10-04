@@ -28,4 +28,9 @@ typedef uint8_t bool_t;    /* Typically a single byte for boolean values */
 #define true  1          /* Define true as 1 */
 #define false 0          /* Define false as 0 */
 
+#define NULL 0
+
+/* Define size_t for 32-bit system */
+typedef unsigned int size_t;
+
 #endif /* _STDINT_H_ */
