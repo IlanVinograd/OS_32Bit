@@ -6,5 +6,6 @@
 #include <io.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <idt.h>
 
 #endif

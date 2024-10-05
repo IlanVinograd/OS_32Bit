@@ -11,15 +11,23 @@ STAGE1_SRC := $(PROJECT_ROOT)/Boot/Stage1/stage1.asm
 STAGE2_SRC := $(PROJECT_ROOT)/Boot/Stage2/stage2.asm
 LINKER_SCRIPT := $(PROJECT_ROOT)/linker.ld
 
-# Найти все .c файлы в папке Sources
+# Find all .c files in the Sources folder
 C_SOURCES := $(wildcard $(SOURCES)/*.c)
 
-# Сгенерировать объектные файлы для всех .c файлов
+# Generate object files for all .c files
 C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
 
-# Добавляем kernel_entry.s отдельно, так как это файл на ассемблере
+# Add kernel_entry.s separately, since this is an assembler file
 ASM_SOURCES := $(SOURCES)/kernel_entry.s
 ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
+
+# IDT source files
+IDT_C_SRC := $(SOURCES)/idt.o
+IDT_ASM_SRC := $(SOURCES)/idt_setup.asm
+
+# Object files for IDT
+IDT_C_OBJ := $(OBJECTS)/idt_handler.o
+IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
 
 # Output binaries and objects
 STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
@@ -54,10 +62,20 @@ $(STAGE2_BIN): $(STAGE2_SRC)
 	@echo "Assembling Stage 2..."
 	$(NASM) -f bin "$(STAGE2_SRC)" -o "$(STAGE2_BIN)"
 
-# Compile and link the kernel, generate kernel.elf and kernel.bin
-$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(LINKER_SCRIPT)
-	@echo "Compiling and linking Kernel..."
-	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS)
+# Compile IDT C code
+$(IDT_C_OBJ): $(IDT_C_SRC)
+	@echo "Compiling IDT C code..."
+	i686-elf-gcc $(CFLAGS) -c $< -o $@
+
+# Assemble IDT ASM code
+$(IDT_ASM_OBJ): $(IDT_ASM_SRC)
+	@echo "Assembling IDT ASM code..."
+	$(NASM) -f elf32 $(IDT_ASM_SRC) -o $(IDT_ASM_OBJ)
+
+# Compile and link the kernel, include IDT object files
+$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
+	@echo "Compiling and linking Kernel with IDT..."
+	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ)
 	i686-elf-objcopy -O binary $(KERNEL_ELF) $(KERNEL_BIN)
 
 # Rule to compile C source files into object files
@@ -82,7 +100,7 @@ $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
 clean:
 	@echo "Cleaning up..."
 	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(KERNEL_BIN)" "$(KERNEL_ELF)" "$(IMG)" \
-	      $(C_OBJECTS) $(ASM_OBJECTS)
+	      $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_C_OBJ) $(IDT_ASM_OBJ)
 
 # Phony targets
 .PHONY: clean output
