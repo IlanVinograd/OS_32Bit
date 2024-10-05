@@ -26,12 +26,13 @@ void initScreen(char* version) {
            "    ~~~~~~~~~~~~~~~~~~~~~~~~~\n", COLOR_BLACK_ON_WHITE);
            
     setCursorPosition(8, 14);
-    putc('T', COLOR_RED_ON_BLACK);
+    putc('T', RED_ON_BLACK_WARNING);
     setCursorPosition(20, 4);
     printf("Version OS: %s", COLOR_BLINKING_YELLOW, version);
 
     setCursorPosition(3, 33);
-    printf("Shell Will be here",COLOR_GREEN_ON_BLACK);
+    printf("Shell Will be here",GREEN_ON_BLACK_SUCCESS);
+    setCursorPosition(5, 33);
     
     //Continue Init Here
 }
