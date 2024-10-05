@@ -21,5 +21,8 @@ void init_idt(void);
 void set_idt_gate(int n, uint32_t handler);
 
 void isr0_handler(void);
+void isr6_handler(void);
+void isr13_handler(void);
+void isr14_handler(void);
 
 #endif
