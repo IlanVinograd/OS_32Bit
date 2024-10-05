@@ -11,13 +11,13 @@ STAGE1_SRC := $(PROJECT_ROOT)/Boot/Stage1/stage1.asm
 STAGE2_SRC := $(PROJECT_ROOT)/Boot/Stage2/stage2.asm
 LINKER_SCRIPT := $(PROJECT_ROOT)/linker.ld
 
-# Найти все .c файлы в папке Sources
+# Find all .c files in the Sources folder
 C_SOURCES := $(wildcard $(SOURCES)/*.c)
 
-# Сгенерировать объектные файлы для всех .c файлов
+# Generate object files for all .c files
 C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
 
-# Добавляем kernel_entry.s отдельно, так как это файл на ассемблере
+# Add kernel_entry.s separately, since this is an assembler file
 ASM_SOURCES := $(SOURCES)/kernel_entry.s
 ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 
