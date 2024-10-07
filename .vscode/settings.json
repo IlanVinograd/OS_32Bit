@@ -4,6 +4,7 @@
         "stdint.h": "c",
         "stdarg.h": "c",
         "stdlib.h": "c",
-        "kernel.h": "c"
+        "kernel.h": "c",
+        "ctype.h": "c"
     }
 }
