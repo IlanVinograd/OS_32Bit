@@ -1,6 +1,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
+#include <paging.h>
 #include <ctype.h>
 #include <vga.h>
 #include <stdint.h>

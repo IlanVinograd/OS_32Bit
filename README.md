@@ -1,4 +1,4 @@
-# Overview Version 0.2
+# Overview Version 0.3
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
 # Installation

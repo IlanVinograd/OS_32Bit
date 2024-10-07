@@ -45,5 +45,5 @@ WORKDIR /usr/src/bootloader
 # Copy all files from the current directory to the Docker container
 COPY . /usr/src/bootloader
 
-# Compile and run the bootloader and kernel, with GUI enabled
-CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -display gtk"]
+# Compile and run the bootloader and kernel, with GUI enabled and 512MB of memory
+CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -m 512M -display gtk"]
