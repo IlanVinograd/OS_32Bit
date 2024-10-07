@@ -5,6 +5,8 @@
         "stdarg.h": "c",
         "stdlib.h": "c",
         "kernel.h": "c",
-        "ctype.h": "c"
+        "ctype.h": "c",
+        "paging.h": "c",
+        "io.h": "c"
     }
 }
