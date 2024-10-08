@@ -9,15 +9,11 @@ void init_paging() {
         first_page_table[i] = (i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
     }
 
-    // Add the page table to the page directory
     page_directory[0] = ((uint32_t)first_page_table) | PAGE_PRESENT | PAGE_WRITABLE;
 
-    // Mark the rest of the page directory as not present
-    for (int i = 1; i < 1024; i++) {
-        page_directory[i] = 0;
-    }
+    // Map virtual address 0xC0000000 to physical address 0x100000
+    page_directory[768] = ((uint32_t)first_page_table) | PAGE_PRESENT | PAGE_WRITABLE;
 
-    // Load the page directory address into the CR3 register
     load_page_directory((uint32_t)page_directory);
 
     // Enable paging by setting the PG bit in CR0
