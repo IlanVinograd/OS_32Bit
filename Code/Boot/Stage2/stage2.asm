@@ -89,7 +89,7 @@ restore_registers_a20:
 ; -------------------------
 ; Load kernel from disk
 ; -------------------------
-     mov ax, KERNEL_LOAD_SEG
+    mov ax, KERNEL_LOAD_SEG
                         ; Load 0x1000 (segment for 1MB) into AX
     mov es, ax          ; Move AX (0x1000) into ES
     mov bx, KERNEL_LOAD_OFFSET
