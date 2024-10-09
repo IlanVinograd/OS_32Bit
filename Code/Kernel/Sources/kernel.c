@@ -2,7 +2,12 @@
 
 void _start(void) {
     init_idt();  // Initialize the IDT
+    init_gdt();
 
+    // Reload segment selectors
+    init_segments();
+
+    // Rest of your kernel code...
     clearScreen();
     setCursorPosition(0, 0);
     initScreen("0.3");

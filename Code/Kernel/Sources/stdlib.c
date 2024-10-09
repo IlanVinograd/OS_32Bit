@@ -52,13 +52,11 @@ int32_t atoi(const char* str) {
     return result * sign;
 }
 
-int32_t boolToChar(bool_t vIn, uint8_t* str) {
-    if (vIn) {
-        strcpy((char*)str, "true");
-        return 4;
+void boolToChar(uint8_t value, uint8_t *str) {
+    if (value) {
+        strcpy(str, (uint8_t *)"true");
     } else {
-        strcpy((char*)str, "false");
-        return 5;
+        strcpy(str, (uint8_t *)"false");
     }
 }
 

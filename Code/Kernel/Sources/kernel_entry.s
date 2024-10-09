@@ -1,28 +1,47 @@
 .section .lowentry, "ax"
 .extern _start
+.extern init_gdt
 .extern init_paging
 
-.set KERNEL_HIGH_BASE, 0xc0000000
+.set KERNEL_HIGH_BASE, 0xC0000000
 .set KERNEL_LOW_BASE, 0x00100000
-.set KERNEL_OFFSET_DIFF, (KERNEL_HIGH_BASE-KERNEL_LOW_BASE)
+.set KERNEL_OFFSET_DIFF, (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
+
+.global _entry
 
 _entry:
-    # Init paging first while running in lower half addreses
+    # Set up the stack using physical addresses
+    mov $phys_stack_top, %esp
+
+    # Initialize the GDT
+    call init_gdt
+
+    # Initialize paging
     call init_paging
 
-    # Init stack to higher half addresses
-    mov $stack_top, %esp
+    # Adjust stack pointer for higher-half addresses
+    add $(KERNEL_OFFSET_DIFF), %esp
 
-    # _start label is a higher half address. After this point
-    # we are running in the higher half of memory.
+    # Now call the kernel's main function (_start) at higher-half address
     call _start
 
 hltloop:
     hlt
     jmp hltloop
 
-# 8k stack aligned to 16 bytes in .bss section
-.local stack_top, stack_bottom
-.comm stack_bottom, 8192, 16
-.comm stack_top, 0
+# Stack definition in physical memory
+.section .bss
+.align 16
+.global phys_stack_bottom
+.global phys_stack_top
+phys_stack_bottom:
+    .skip 8192          # 8 KB stack
+phys_stack_top:
 
+# Define stack_top as a label at the higher-half address
+.section .text
+.global stack_top
+stack_top:
+
+# Adjust the location of stack_top to be at the higher-half address
+# The linker will handle the relocation

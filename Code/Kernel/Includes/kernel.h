@@ -9,5 +9,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <idt.h>
+#include <gdt.h>
 
 #endif

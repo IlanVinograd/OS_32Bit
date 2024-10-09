@@ -10,7 +10,7 @@ void itoa(int num, char* str, int base);
 int32_t atoi(const char* str);
 // Converts the string 'str' into an integer (assumes the string represents a valid number).
 
-int32_t boolToChar(bool_t vIn, uint8_t* str);
+void boolToChar(bool_t vIn, uint8_t* str);
 // Converts a boolean value to a string representation.
 
 int32_t hexToString(uint64_t num, uint8_t* str);

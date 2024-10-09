@@ -32,10 +32,12 @@ SECTIONS {
     .data : AT (ADDR (.data) - lower_higher_diff)
     {
         *(.data)
+        *(.data.*)
     }
     .bss : AT (ADDR (.bss) - lower_higher_diff)
     {
-        *(COMMON)
         *(.bss)
+        *(.bss.*)
+        *(COMMON)
     }
 }
