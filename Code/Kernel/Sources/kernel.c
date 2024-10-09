@@ -2,7 +2,6 @@
 
 void _start(void) {
     init_idt();  // Initialize the IDT
-    init_paging();  // Initialize paging system
 
     clearScreen();
     setCursorPosition(0, 0);

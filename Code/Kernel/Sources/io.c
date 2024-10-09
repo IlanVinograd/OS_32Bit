@@ -1,4 +1,4 @@
-#include "../includes/io.h"
+#include "../Includes/io.h"
 
 void outPort(uint16_t port, unsigned char val){
     __asm__ __volatile__("outb %0, %1" : : "a"(val), "Nd"(port));
