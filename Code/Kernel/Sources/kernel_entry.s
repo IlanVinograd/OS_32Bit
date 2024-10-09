@@ -42,6 +42,3 @@ phys_stack_top:
 .section .text
 .global stack_top
 stack_top:
-
-# Adjust the location of stack_top to be at the higher-half address
-# The linker will handle the relocation
