@@ -1,11 +1,12 @@
 ENTRY(_start)
 
-LOW_BASE = 0x100000;
-HIGH_BASE = 0xC0000000;
+KERNEL_LOW_BASE = 0x100000;
+KERNEL_HIGH_BASE = 0xC0000000;
 
 SECTIONS {
-    . = LOW_BASE;
+    . = KERNEL_LOW_BASE;
 
+    /* Kernel code and that will be run from low memory addresses */
     .lowtext :
     {
         *(.lowentry) /* Ensure .lowentry section is always first */
@@ -15,25 +16,26 @@ SECTIONS {
     {
         *(.lowdata)
     }
-    lower_size = . - LOW_BASE;
 
-    lower_higher_diff = HIGH_BASE - . + lower_size;
-    . = HIGH_BASE + lower_size;
+    /* 0xC0000000-0xC03FFFFF now mapped to 0x00000000-0x003FFFFF.
+       Note this includes the first 1MiB before the kernel. The 
+       kernel itself will start at 0xC0100000
+     */
 
-    /* Add a symbol that indicates the start address of the kernel. */
-    .text : AT (ADDR (.text) - lower_higher_diff)
+    . += KERNEL_HIGH_BASE;
+    .text : AT (ADDR (.text) - KERNEL_HIGH_BASE)
     {
         *(.text*)
     }
-    .rodata : AT (ADDR (.rodata) - lower_higher_diff)
+    .rodata : AT (ADDR (.rodata) - KERNEL_HIGH_BASE)
     {
         *(.rodata*)
     }
-    .data : AT (ADDR (.data) - lower_higher_diff)
+    .data : AT (ADDR (.data) - KERNEL_HIGH_BASE)
     {
         *(.data)
     }
-    .bss : AT (ADDR (.bss) - lower_higher_diff)
+    .bss : AT (ADDR (.bss) - KERNEL_HIGH_BASE)
     {
         *(.bss)
         *(COMMON)

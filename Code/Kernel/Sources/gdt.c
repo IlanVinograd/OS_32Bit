@@ -1,9 +1,4 @@
-#include "../Includes/gdt.h"
-
-// Should be moved to a .h file
-//#define KERNEL_HIGH_BASE 0xC0000000
-//#define KERNEL_LOW_BASE 0x00100000
-//#define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
+#include<gdt.h>
 
 extern uint32_t esp0_stack_top;
 

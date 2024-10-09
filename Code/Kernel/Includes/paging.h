@@ -18,8 +18,11 @@ extern uint32_t first_page_table[1024];
 typedef uint32_t page_directory_entry_t;
 typedef uint32_t page_table_entry_t;
 
-void init_paging();
+void init_paging(void);
 void load_page_directory(uint32_t page_directory_address);
-void enable_paging();
+uint32_t get_cr3(void);
+void set_cr3(uint32_t page_directory_address);
+void flush_tlb(void);
+void remove_first_4MiB_mapping(void);
 
 #endif /* _PAGING_H_ */

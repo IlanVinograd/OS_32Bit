@@ -1,6 +1,10 @@
-#include "../Includes/kernel.h"
+#include<kernel.h>
+#include<paging.h>
 
 void _start(void) {
+    // Remove the identitiy mapping to the first 4MiB
+    remove_first_4MiB_mapping();
+
     init_idt();  // Initialize the IDT
     init_gdt();
 

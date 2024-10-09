@@ -137,7 +137,7 @@ void printf(const char* fmt, TextStyle style, ...) {
             // Handle newline character
             uint16_t cursor_position = getCursorPosition();
             uint16_t row = cursor_position / VGA_COLS;
-            uint16_t col = cursor_position % VGA_COLS;
+//            uint16_t col = cursor_position % VGA_COLS;
 
             // Move to the beginning of the next row
             row++;

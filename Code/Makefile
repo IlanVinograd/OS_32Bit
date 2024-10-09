@@ -37,7 +37,7 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding
+CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3
 QEMU_IMG := qemu-img
 DD := dd
 NASM := nasm
