@@ -1,5 +1,3 @@
-# Makefile
-
 PROJECT_ROOT := $(CURDIR)
 
 # Folder structure
@@ -16,27 +14,19 @@ LINKER_SCRIPT := $(PROJECT_ROOT)/linker.ld
 # Find all .c files in the Sources folder
 C_SOURCES := $(wildcard $(SOURCES)/*.c)
 
-# Exclude idt.c from C_SOURCES if you prefer to handle it separately
-# Alternatively, let it be included and remove separate handling
-# C_SOURCES := $(filter-out $(SOURCES)/idt.c, $(C_SOURCES))
-
 # Generate object files for all .c files
 C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
 
-# GAS assembly source files
-GAS_SOURCES := $(SOURCES)/kernel_entry.s $(SOURCES)/gdt_flush.s
+# Add kernel_entry.s separately, since this is an assembler file
+ASM_SOURCES := $(SOURCES)/kernel_entry.s $(SOURCES)/gdt_flush.s
+ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 
-# NASM assembly source files
-NASM_SOURCES :=
-
-# Generate object files for assembly files
-GAS_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(GAS_SOURCES))
-NASM_OBJECTS := $(patsubst $(SOURCES)/%.asm, $(OBJECTS)/%.o, $(NASM_SOURCES))
-
-# IDT assembly source file
+# IDT source files
+IDT_C_SRC := $(SOURCES)/idt.o
 IDT_ASM_SRC := $(SOURCES)/idt_setup.asm
 
-# Object file for IDT assembly
+# Object files for IDT
+IDT_C_OBJ := $(OBJECTS)/idt_handler.o
 IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
 
 # Output binaries and objects
@@ -47,7 +37,7 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding -m32 -O2 -Wall -Wextra
+CFLAGS := -I$(INCLUDES) -ffreestanding
 QEMU_IMG := qemu-img
 DD := dd
 NASM := nasm
@@ -72,31 +62,31 @@ $(STAGE2_BIN): $(STAGE2_SRC)
 	@echo "Assembling Stage 2..."
 	$(NASM) -f bin "$(STAGE2_SRC)" -o "$(STAGE2_BIN)"
 
+# Compile IDT C code
+$(IDT_C_OBJ): $(IDT_C_SRC)
+	@echo "Compiling IDT C code..."
+	i686-elf-gcc $(CFLAGS) -c $< -o $@
+
 # Assemble IDT ASM code
-$(IDT_ASM_OBJ): $(IDT_ASM_SRC) | $(OBJECTS)
+$(IDT_ASM_OBJ): $(IDT_ASM_SRC)
 	@echo "Assembling IDT ASM code..."
 	$(NASM) -f elf32 $(IDT_ASM_SRC) -o $(IDT_ASM_OBJ)
 
-# Compile and link the kernel
-$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(GAS_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
-	@echo "Compiling and linking Kernel..."
-	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(GAS_OBJECTS) $(IDT_ASM_OBJ)
+# Compile and link the kernel, include IDT object files
+$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
+	@echo "Compiling and linking Kernel with IDT..."
+	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ)
 	i686-elf-objcopy -O binary $(KERNEL_ELF) $(KERNEL_BIN)
 
 # Rule to compile C source files into object files
-$(C_OBJECTS): $(OBJECTS)/%.o : $(SOURCES)/%.c | $(OBJECTS)
+$(OBJECTS)/%.o: $(SOURCES)/%.c
 	@echo "Compiling $<..."
 	i686-elf-gcc $(CFLAGS) -c $< -o $@
 
-# Rule to assemble GAS assembly files (.s) into object files
-$(GAS_OBJECTS): $(OBJECTS)/%.o : $(SOURCES)/%.s | $(OBJECTS)
-	@echo "Assembling (GAS) $<..."
-	i686-elf-as --32 $< -o $@
-
-# Rule to assemble NASM assembly files (.asm) into object files
-$(NASM_OBJECTS): $(OBJECTS)/%.o : $(SOURCES)/%.asm | $(OBJECTS)
-	@echo "Assembling (NASM) $<..."
-	$(NASM) -f elf32 $< -o $@
+# Rule to assemble assembly files into object files
+$(OBJECTS)/%.o: $(SOURCES)/%.s
+	@echo "Assembling $<..."
+	i686-elf-gcc $(CFLAGS) -c $< -o $@
 
 # Create bootloader.img
 $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
@@ -110,9 +100,7 @@ $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
 clean:
 	@echo "Cleaning up..."
 	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(KERNEL_BIN)" "$(KERNEL_ELF)" "$(IMG)" \
-	      $(C_OBJECTS) $(GAS_OBJECTS) $(NASM_OBJECTS) $(IDT_ASM_OBJ)
-	rm -rf $(OBJECTS)
-	rm -rf $(BINS)
+	      $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_C_OBJ) $(IDT_ASM_OBJ)
 
 # Phony targets
 .PHONY: clean output

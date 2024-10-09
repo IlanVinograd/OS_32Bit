@@ -11,8 +11,6 @@ struct gdt_entry gdt[6];
 struct gdt_ptr   gdtp;
 struct tss_entry tss;
 
-extern void lgdt(struct gdt_ptr* gdtp);
-
 void init_gdt() {
     // Setup the GDT pointer
     gdtp.limit = (sizeof(struct gdt_entry) * 6) - 1;

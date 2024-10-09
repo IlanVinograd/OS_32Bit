@@ -35,6 +35,7 @@ void init_segments();
 void gdt_set_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);
 
 // Externally accessible variables
+extern void lgdt(struct gdt_ptr* gdtp);
 extern uint32_t phys_stack_top;
 extern struct gdt_entry gdt[6];
 extern struct gdt_ptr   gdtp;
