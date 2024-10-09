@@ -65,7 +65,7 @@ void flush_tlb(void) {
 
 // Load CR3 with
 void load_page_directory(uint32_t page_directory_address) {
-    __asm__ volatile("mov %0, %%cr3" :: "r"(page_directory_address));
+    __asm__ volatile("mov %0, %%cr3" :: "r"(page_directory_address) : "memory");
 }
 
 // Remove first 4MiB identity mapping
