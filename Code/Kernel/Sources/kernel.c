@@ -37,5 +37,5 @@ void _start(void) {
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
     */
 
-    while (1);  // Loop indefinitely
+    while (1) __asm__ __volatile__ ("hlt");  // Loop indefinitely
 }
