@@ -1,10 +1,11 @@
 #include "../Includes/gdt.h"
 
-#define KERNEL_HIGH_BASE 0xC0000000
-#define KERNEL_LOW_BASE 0x00100000
-#define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
+// Should be moved to a .h file
+//#define KERNEL_HIGH_BASE 0xC0000000
+//#define KERNEL_LOW_BASE 0x00100000
+//#define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
 
-extern uint32_t phys_stack_top;  // Declare phys_stack_top
+extern uint32_t esp0_stack_top;
 
 // Declare the GDT with 6 entries
 struct gdt_entry gdt[6];
@@ -43,7 +44,7 @@ void init_gdt() {
     // Initialize the TSS
     memset(&tss, 0, sizeof(tss));
     tss.ss0  = 0x10;      // Kernel data segment selector
-    tss.esp0 = (uint32_t)&phys_stack_top + KERNEL_OFFSET_DIFF;  // Stack pointer for ring 0
+    tss.esp0 = (uint32_t)&esp0_stack_top;  // Stack pointer for ring 0 transitions
 
     // Load the TSS
     __asm__ volatile ("ltr %%ax" : : "a" (0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
