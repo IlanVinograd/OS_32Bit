@@ -2,7 +2,7 @@
 [org 0x8000]
 
 ; Kernel sectors to read
-KERNEL_SECTORS     equ 48
+KERNEL_SECTORS     equ 55
 KERNEL_LOAD_SEG    equ 0x1000
 KERNEL_LOAD_OFFSET equ 0x0000
 KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
@@ -60,7 +60,7 @@ restore_registers_a20:
 ; -------------------------
     mov ax, KERNEL_LOAD_SEG
     mov es, ax          ; ES = KERNEL_LOAD_SEG
-    xor bx, bx          ; BX = 0 (offset 0)
+    mov bx, KERNEL_LOAD_OFFSET
 
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
     mov al, KERNEL_SECTORS      ; Number of sectors to read
@@ -83,8 +83,52 @@ disk_read_error:
     hlt
 
 ; -------------------------
+; Enter Protected Mode
+; -------------------------
+enter_protected_mode:
+    cli                 ; Disable interrupts
+
+    lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
+
+    mov eax, cr0
+    or eax, 1           ; Set PE bit (Protection Enable)
+    mov cr0, eax
+
+    ; Far jump to flush prefetch queue and enter protected mode
+    jmp 0x08:protected_mode_entry
+
+; -------------------------
+; Protected Mode Entry Point
+; -------------------------
+[BITS 32]
+protected_mode_entry:
+    cli
+    ; Set up segment registers
+    mov ax, 0x10        ; Data segment selector
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+
+    ; Set up stack
+    mov ebp, 0x90000
+    mov esp, ebp
+
+    ; Copy kernel from KERNEL_LOAD_ADDR to KERNEL_RUN_ADDR
+    cld
+    mov esi, KERNEL_LOAD_ADDR
+    mov edi, KERNEL_RUN_ADDR
+    mov ecx, KERNEL_SECTORS * 512   ; Number of dwords
+    rep movsb
+
+    ; Jump to kernel entry point
+    jmp 0x08:KERNEL_RUN_ADDR
+
+; -------------------------
 ; GDT Setup
 ; -------------------------
+section .data
 gdt_start:
 gdt:
     ; Null Descriptor
@@ -112,46 +156,6 @@ gdt_end:
 gdt_descriptor:
     dw gdt_end - gdt_start -1    ; Limit (size of GDT -1)
     dd gdt_start                 ; Base address of GDT
-
-; -------------------------
-; Enter Protected Mode
-; -------------------------
-enter_protected_mode:
-    cli                 ; Disable interrupts
-
-    lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
-
-    mov eax, cr0
-    or eax, 1           ; Set PE bit (Protection Enable)
-    mov cr0, eax
-
-    ; Far jump to flush prefetch queue and enter protected mode
-    jmp 0x08:protected_mode_entry
-
-; -------------------------
-; Protected Mode Entry Point
-; -------------------------
-[BITS 32]
-protected_mode_entry:
-    ; Set up segment registers
-    mov ax, 0x10        ; Data segment selector
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-
-    ; Set up stack
-    mov esp, 0x90000    ; Set stack pointer
-
-    ; Copy kernel from KERNEL_LOAD_ADDR to KERNEL_RUN_ADDR
-    mov esi, KERNEL_LOAD_ADDR
-    mov edi, KERNEL_RUN_ADDR
-    mov ecx, KERNEL_SECTORS * 512 / 4    ; Number of dwords
-    rep movsd
-
-    ; Jump to kernel entry point
-    jmp 0x08:KERNEL_RUN_ADDR
 
 ; -------------------------
 ; Print String Function
