@@ -81,6 +81,6 @@ docker build -t os_32bit .
 # Documentation
 Comprehensive documentation is provided to help you understand the core concepts and contribute to the project effectively.
 
-- [WorkFlow.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/WorkFlow.md)
+- [CONTRIBUTING.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/CONTRIBUTING.md)
 - [TECHNICAL_GUIDE.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/Docs/Technical_Guide.md)
 - [Resources.md](https://github.com/IlanVinograd/OS_32Bit/blob/main/Resources.md)

@@ -2,44 +2,13 @@
 [org 0x8000]
 
 ; Kernel sectors to read
-KERNEL_SECTORS     equ 0x0f
+KERNEL_SECTORS     equ 55
 KERNEL_LOAD_SEG    equ 0x1000
 KERNEL_LOAD_OFFSET equ 0x0000
 KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
 KERNEL_RUN_ADDR    equ 0x100000
 
-TSS_ADDR_HI_BYTE_OFFSET equ 5
-TSS_ACCESS_BYTE_OFFSET  equ 7
-
 jmp a20_enable
-
-; -------------------------
-; BSS Section for TSS
-; -------------------------
-section .bss
-tss resb 104    ; Reserve 104 bytes for the TSS (Task State Segment)
-
-; -------------------------
-; Initialize the TSS
-; -------------------------
-section .text
- 
-init_tss:
-    ; Set ESP0 (stack pointer for privilege level 0)
-    mov eax, 0x9FC00        ; Example stack pointer for ring 0
-    mov [tss + 4], eax      ; Set ESP0 in the TSS
- 
-    ; Set SS0 (stack segment for privilege level 0)
-    mov ax, 0x10            ; Kernel data segment selector (0x10)
-    mov [tss + 8], ax       ; Set SS0 in the TSS
- 
-    ; Swap the byte with tss address bits 24:31 with the access byte
-    ; In the TSS descriptor
-    mov al, [gdt.tss + TSS_ADDR_HI_BYTE_OFFSET]
-    xchg al, [gdt.tss + TSS_ACCESS_BYTE_OFFSET]
-    mov [gdt.tss + TSS_ADDR_HI_BYTE_OFFSET], al
- 
-    ret                     ; Return to the main flow
 
 ; -------------------------
 ; A20 Enable
@@ -83,165 +52,128 @@ restore_registers_a20:
     pop ds               ; Restore data segment
     pop dx               ; Restore DX register
     popf                 ; Restore flags
- 
+
     sti                  ; Re-enable interrupts
 
 ; -------------------------
 ; Load kernel from disk
 ; -------------------------
     mov ax, KERNEL_LOAD_SEG
-                        ; Load 0x1000 (segment for 1MB) into AX
-    mov es, ax          ; Move AX (0x1000) into ES
+    mov es, ax          ; ES = KERNEL_LOAD_SEG
     mov bx, KERNEL_LOAD_OFFSET
-                        ; Offset within the segment
 
     mov ah, 02h         ; BIOS Interrupt 13h, Function 02h: Read sectors from the disk.
-    mov al, KERNEL_SECTORS
-                        ; Read 1 sector from the disk (this corresponds to the size of a sector, which is 512 bytes).
+    mov al, KERNEL_SECTORS      ; Number of sectors to read
 
-    mov ch, 00h         ; Set Cylinder number to 0 (since both Stage 1 and Stage 2 are on Cylinder 0).
-    mov cl, 03h         ; Set Sector number to 2 (Stage 1 is in Sector 1, so Stage 2 starts at Sector 2).
-    mov dh, 00h         ; Set Head number to 0 (assuming we are using Head 0 for now).
+    mov ch, 00h         ; Cylinder number
+    mov cl, 03h         ; Sector number (starts from 1)
+    mov dh, 00h         ; Head number
+    mov dl, 0x80        ; Boot drive (assuming first hard disk)
 
-    int 13h
+    int 13h             ; Call BIOS to read sectors
 
-    jmp gdt_setup
+    jc disk_read_error  ; If carry flag is set, jump to error handler
 
-; -------------------------
-; GDT Setup and TSS Setup
-; -------------------------
-gdt_setup:
-    cli
-    lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
+    jmp enter_protected_mode  ; Proceed to enter protected mode
 
-    push ds
-    push es
- 
-    call init_tss         ; Initialize the TSS
- 
-    pop es
-    pop ds
-
-; -------------------------
-; GDT & TSS Success Message
-; -------------------------
-    xor ax, ax
-    mov ds, ax
-    mov ah, 0x0E         ; Set up for character output
-    mov bh, 0x00         ; Display page number
-
-    mov si, msg_gdtss_success ; Load GDT success message into SI
-
-gdtss_print_success:
-    lodsb                   ; Load next byte from message
-    cmp al, 0               ; Check for null terminator
-    je enter_protected_mode     ; If end of string, proceed to protected mode
-    int 0x10                ; Print character in AL
-    jmp gdtss_print_success   ; Loop to print the next character
+disk_read_error:
+    ; Handle disk read error
+    mov si, msg_disk_read_error
+    call print_string
+    hlt
 
 ; -------------------------
 ; Enter Protected Mode
 ; -------------------------
 enter_protected_mode:
-    cli                 ; Disable interrupts before entering protected mode
+    cli                 ; Disable interrupts
+
+    lgdt [gdt_descriptor] ; Load GDT descriptor into GDTR
 
     mov eax, cr0
-    or eax, 1           ; Set protected mode bit in CR0
+    or eax, 1           ; Set PE bit (Protection Enable)
     mov cr0, eax
 
-    jmp 0x08:update_segments
+    ; Far jump to flush prefetch queue and enter protected mode
+    jmp 0x08:protected_mode_entry
+
 ; -------------------------
-; Protected Mode Code Segment
+; Protected Mode Entry Point
 ; -------------------------
 [BITS 32]
-update_segments:
+protected_mode_entry:
     cli
-    
-    mov ax, 0x10        ; Load GDT data segment selector (0x10)
+    ; Set up segment registers
+    mov ax, 0x10        ; Data segment selector
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
 
+    ; Set up stack
     mov ebp, 0x90000
     mov esp, ebp
 
-    mov ax, 0x28          ; TSS selector
-    ltr ax                ; Load Task Register with TSS selector
-
-; -------------------------
-; Kernel Code
-; -------------------------
-kernel:
-    ; Copy the kernel from 0x10000 to 0x100000
+    ; Copy kernel from KERNEL_LOAD_ADDR to KERNEL_RUN_ADDR
     cld
     mov esi, KERNEL_LOAD_ADDR
     mov edi, KERNEL_RUN_ADDR
-    mov ecx, KERNEL_SECTORS * 512
+    mov ecx, KERNEL_SECTORS * 512   ; Number of dwords
     rep movsb
 
+    ; Jump to kernel entry point
     jmp 0x08:KERNEL_RUN_ADDR
 
 ; -------------------------
-; GDT Descriptor and TSS
+; GDT Setup
 ; -------------------------
 section .data
 gdt_start:
 gdt:
-     ; Null Descriptor
+    ; Null Descriptor
     dd 0x0
     dd 0x0
- 
-    ; Kernel Code Segment (DPL = 0)
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (lower 16 bits)
-    db 0x00                ; Base (next 8 bits)
-    db 10011010b           ; Access byte
-    db 11001111b           ; Flags and limit (upper 4 bits)
-    db 0x00                ; Base (upper 8 bits)
- 
-    ; Kernel Data Segment (DPL = 0)
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (lower 16 bits)
-    db 0x00                ; Base (next 8 bits)
-    db 10010010b           ; Access byte
-    db 11001111b           ; Flags and limit (upper 4 bits)
-    db 0x00                ; Base (upper 8 bits)
- 
-    ; User Code Segment (DPL = 3)
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (lower 16 bits)
-    db 0x00                ; Base (next 8 bits)
-    db 11111010b           ; Access byte (DPL = 3)
-    db 11001111b           ; Flags and limit (upper 4 bits)
-    db 0x00                ; Base (upper 8 bits)
- 
-    ; User Data Segment (DPL = 3)
-    dw 0xFFFF              ; Limit
-    dw 0x0000              ; Base (lower 16 bits)
-    db 0x00                ; Base (next 8 bits)
-    db 11110010b           ; Access byte (DPL = 3)
-    db 11001111b           ; Flags and limit (upper 4 bits)
-    db 0x00                ; Base (upper 8 bits)
- 
-    ; TSS Descriptor
-.tss:
-    dw 0x0067                   ; Limit
-    dd tss                      ; Base
-    db 00000000b                ; Flags and limit (upper 4 bits)
-    db 10001001b                ; Access byte
- 
+
+    ; Code Segment Descriptor (selector 0x08)
+    dw 0xFFFF              ; Limit Low
+    dw 0x0000              ; Base Low
+    db 0x00                ; Base Middle
+    db 10011010b           ; Access byte: Present, Ring 0, Code segment, Executable, Readable
+    db 11001111b           ; Flags and Limit High: Granularity, 32-bit
+    db 0x00                ; Base High
+
+    ; Data Segment Descriptor (selector 0x10)
+    dw 0xFFFF              ; Limit Low
+    dw 0x0000              ; Base Low
+    db 0x00                ; Base Middle
+    db 10010010b           ; Access byte: Present, Ring 0, Data segment, Writable
+    db 11001111b           ; Flags and Limit High: Granularity, 32-bit
+    db 0x00                ; Base High
+
 gdt_end:
- 
-; GDT Descriptor (contains size and location of GDT)
+
 gdt_descriptor:
-    dw gdt_end - gdt_start - 1  ; Size of the GDT (in bytes, minus 1)
-    dd gdt_start
+    dw gdt_end - gdt_start -1    ; Limit (size of GDT -1)
+    dd gdt_start                 ; Base address of GDT
+
+; -------------------------
+; Print String Function
+; -------------------------
+; Assumes DS is set properly
+print_string:
+    mov ah, 0x0E         ; BIOS teletype function
+.print_loop:
+    lodsb
+    cmp al, 0
+    je .print_done
+    int 0x10
+    jmp .print_loop
+.print_done:
+    ret
 
 ; -------------------------
 ; Messages
 ; -------------------------
-msg_a20_enable  db 'A20 line enable                 ->   successfully ', 0x0D, 0x0A, 0
-
-msg_gdtss_success db 'GDT and TSS is configured       ->   successfully ', 0x0D, 0x0A, 0
+msg_a20_enable db 'A20 line enabled successfully', 0x0D, 0x0A, 0
+msg_disk_read_error db 'Disk read error!', 0x0D, 0x0A, 0

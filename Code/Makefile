@@ -18,7 +18,7 @@ C_SOURCES := $(wildcard $(SOURCES)/*.c)
 C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
 
 # Add kernel_entry.s separately, since this is an assembler file
-ASM_SOURCES := $(SOURCES)/kernel_entry.s
+ASM_SOURCES := $(SOURCES)/kernel_entry.s $(SOURCES)/gdt_flush.s
 ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 
 # IDT source files
