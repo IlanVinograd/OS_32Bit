@@ -1,10 +1,11 @@
 ENTRY(_start)
 
-KERNEL_LOW_BASE = 0x100000;
+KERNEL_LOW_BASE  = 0x00000000;
+KERNEL_OFFSET    = 0x00100000;
 KERNEL_HIGH_BASE = 0xC0000000;
 
 SECTIONS {
-    . = KERNEL_LOW_BASE;
+    . = KERNEL_LOW_BASE + KERNEL_OFFSET;
 
     /* Kernel code and that will be run from low memory addresses */
     .lowtext :
