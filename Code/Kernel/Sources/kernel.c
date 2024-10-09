@@ -2,6 +2,9 @@
 
 void _start(void) {
     init_idt();  // Initialize the IDT
+    init_gdt();
+
+    init_segments();
 
     clearScreen();
     setCursorPosition(0, 0);
@@ -34,5 +37,5 @@ void _start(void) {
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
     */
 
-    while (1);  // Loop indefinitely
+    while (1) __asm__ __volatile__ ("hlt");  // Loop indefinitely
 }

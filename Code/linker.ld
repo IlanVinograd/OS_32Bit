@@ -8,7 +8,7 @@ SECTIONS {
 
     .lowtext :
     {
-        *(.lowentry) /* Ensure .entry section is always first */
+        *(.lowentry) /* Ensure .lowentry section is always first */
         *(.lowtext)
     }
     .lowdata :
@@ -35,7 +35,7 @@ SECTIONS {
     }
     .bss : AT (ADDR (.bss) - lower_higher_diff)
     {
-        *(COMMON)
         *(.bss)
+        *(COMMON)
     }
 }
