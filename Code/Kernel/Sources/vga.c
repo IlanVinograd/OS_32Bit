@@ -40,7 +40,7 @@ void initScreen(char* version) {
 }
 
 void clearScreen(void){
-    uint8_t *video_address = (uint8_t *) VGA_VIDEO_MEMORY;
+    uint8_t *video_address = (uint8_t *)video_text_mem;
     uint32_t i = 0;
 
     while(i + VGA_SHELL_BEGIN < (VGA_ROWS * VGA_COLS) - VGA_SHELL_BEGIN){
