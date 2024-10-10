@@ -5,6 +5,10 @@ struct gdt_entry gdt[6];
 struct gdt_ptr   gdtp;
 struct tss_entry tss;
 
+void lgdt(struct gdt_ptr* gdtp) {
+    __asm__ ("lgdt %0" :: "m"(*gdtp) : "memory");
+}
+
 void init_gdt() {
     // Setup the GDT pointer
     gdtp.limit = (sizeof(struct gdt_entry) * 6) - 1;
