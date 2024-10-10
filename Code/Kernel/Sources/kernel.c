@@ -27,12 +27,12 @@ void _start(void) {
 
     /*
     // Trigger Invalid Opcode Exception (ISR6)
-    asm volatile ("ud2");
+    __asm__("ud2");
     */
 
     /*
     // Test General Protection Fault (ISR13)
-    asm volatile ("int $13");  // This will trigger ISR13
+    __asm__("int $13");  // This will trigger ISR13
     */
 
     /*

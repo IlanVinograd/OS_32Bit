@@ -3,15 +3,15 @@
 
 // Load CR3 with Page Directory address
 void load_page_directory(uintptr_t page_directory_address) {
-    __asm__ volatile("mov %0, %%cr3" :: "r"(page_directory_address) : "memory");
+    __asm__ ("mov %0, %%cr3" :: "r"(page_directory_address) : "memory");
 }
 
 // Enable paging
 static void enable_paging(void) {
     uint32_t cr0;
-    __asm__ volatile("mov %%cr0, %0" : "=r"(cr0));
+    __asm__ __volatile__ ("mov %%cr0, %0" : "=r"(cr0));
     cr0 |= 0x80000000;  // Set the paging (PG) bit
-    __asm__ volatile("mov %0, %%cr0" :: "r"(cr0));
+    __asm__ ("mov %0, %%cr0" :: "r"(cr0));
 }
 
 // Set up the first page table, first 4MB of memory (identity mapping)
@@ -48,13 +48,13 @@ void init_paging(void) {
 // Get contents of CR3 register
 uintptr_t get_cr3(void) {
     uintptr_t cr3;
-    __asm__ volatile("mov %%cr3, %0" : "=r"(cr3));
+    __asm__ __volatile__ ("mov %%cr3, %0" : "=r"(cr3));
     return cr3;
 }
 
 // Set CR3 register
 void set_cr3(uintptr_t page_directory_address) {
-    __asm__ volatile("mov %0, %%cr3" :: "r"(page_directory_address) : "memory");
+    __asm__ ("mov %0, %%cr3" :: "r"(page_directory_address) : "memory");
 }
 
 // Flush entire TLB

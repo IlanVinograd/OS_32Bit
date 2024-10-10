@@ -61,13 +61,13 @@ void gdt_set_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8
 
 void init_segments() {
     // Reload code segment
-    __asm__ volatile (
+    __asm__ (
         "jmp $0x08, $.flush_cs\n"
         ".flush_cs:\n" ::: "memory"
     );
 
     // Reload data segment registers
-    __asm__ volatile (
+    __asm__ (
         "mov $0x10, %%ax\n"
         "mov %%ax, %%ds\n"
         "mov %%ax, %%es\n"
