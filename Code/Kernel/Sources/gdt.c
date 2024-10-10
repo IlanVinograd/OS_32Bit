@@ -1,7 +1,5 @@
 #include<gdt.h>
 
-extern uint32_t esp0_stack_top;
-
 // Declare the GDT with 6 entries
 struct gdt_entry gdt[6];
 struct gdt_ptr   gdtp;
@@ -39,10 +37,10 @@ void init_gdt() {
     // Initialize the TSS
     memset(&tss, 0, sizeof(tss));
     tss.ss0  = 0x10;      // Kernel data segment selector
-    tss.esp0 = (uint32_t)&esp0_stack_top;  // Stack pointer for ring 0 transitions
+    tss.esp0 = (uint32_t)esp0_stack_top;  // Stack pointer for ring 0 transitions
 
     // Load the TSS
-    __asm__ volatile ("ltr %%ax" : : "a" (0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
+    __asm__ volatile ("ltr %0" : : "r" ((uint16_t)0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
 }
 
 void gdt_set_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
@@ -61,7 +59,7 @@ void init_segments() {
     // Reload code segment
     __asm__ volatile (
         "jmp $0x08, $.flush_cs\n"
-        ".flush_cs:\n"
+        ".flush_cs:\n" ::: "memory"
     );
 
     // Reload data segment registers
@@ -72,6 +70,6 @@ void init_segments() {
         "mov %%ax, %%fs\n"
         "mov %%ax, %%gs\n"
         "mov %%ax, %%ss\n"
-        : : : "ax"
+        : : : "ax", "memory"
     );
 }

@@ -35,8 +35,8 @@ hltloop:
 # Kernel stack in higher half address space
 # Aligning stacks on 4k page boundaries can be useful in the future
 .section .bss
-.global phys_stack_bottom
-.global phys_stack_top
+.global kernel_stack_bottom
+.global kernel_stack_top
 .align 4096
 kernel_stack_bottom:
     .skip 8192          # 8 KB stack
