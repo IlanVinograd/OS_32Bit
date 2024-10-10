@@ -3,6 +3,8 @@
 uint16_t CursorPosition;
 TextStyle currentColor;
 
+volatile uint16_t *const video_text_mem = (uint16_t *)VGA_VIDEO_MEMORY;
+
 void initScreen(char* version) {
     printf("                 ,\n"
            "                /|      ___\n"
@@ -82,9 +84,8 @@ uint8_t encodeColor(TextStyle style) {
 
 void putc(char c, TextStyle style){
     uint16_t cursor_position = getCursorPosition();
-    volatile uint16_t *video = (uint16_t *)VGA_VIDEO_MEMORY + cursor_position;
     uint8_t color = encodeColor(style);
-    *video = (c & 0xFF) | (color << 8);
+    video_text_mem[cursor_position] = (c & 0xFF) | (color << 8);
 
     cursor_position++;
     setCursorPosition(cursor_position / VGA_COLS, cursor_position % VGA_COLS);
