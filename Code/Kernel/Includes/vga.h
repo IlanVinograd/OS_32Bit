@@ -5,8 +5,9 @@
 #include <io.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <kernel.h>
 
-#define VGA_VIDEO_MEMORY 0xB8000
+#define VGA_VIDEO_MEMORY (KERNEL_HIGH_BASE + 0xB8000)
 #define VGA_ROWS 25
 #define VGA_COLS 80
 #define VGA_SHELL_BEGIN 0

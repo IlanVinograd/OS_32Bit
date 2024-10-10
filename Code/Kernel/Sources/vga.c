@@ -3,6 +3,8 @@
 uint16_t CursorPosition;
 TextStyle currentColor;
 
+volatile uint16_t *const video_text_mem = (uint16_t *)VGA_VIDEO_MEMORY;
+
 void initScreen(char* version) {
     printf("                 ,\n"
            "                /|      ___\n"
@@ -38,7 +40,7 @@ void initScreen(char* version) {
 }
 
 void clearScreen(void){
-    uint8_t *video_address = (uint8_t *) VGA_VIDEO_MEMORY;
+    uint8_t *video_address = (uint8_t *)video_text_mem;
     uint32_t i = 0;
 
     while(i + VGA_SHELL_BEGIN < (VGA_ROWS * VGA_COLS) - VGA_SHELL_BEGIN){
@@ -82,9 +84,8 @@ uint8_t encodeColor(TextStyle style) {
 
 void putc(char c, TextStyle style){
     uint16_t cursor_position = getCursorPosition();
-    volatile uint16_t *video = (uint16_t *)VGA_VIDEO_MEMORY + cursor_position;
     uint8_t color = encodeColor(style);
-    *video = (c & 0xFF) | (color << 8);
+    video_text_mem[cursor_position] = (c & 0xFF) | (color << 8);
 
     cursor_position++;
     setCursorPosition(cursor_position / VGA_COLS, cursor_position % VGA_COLS);
@@ -137,7 +138,7 @@ void printf(const char* fmt, TextStyle style, ...) {
             // Handle newline character
             uint16_t cursor_position = getCursorPosition();
             uint16_t row = cursor_position / VGA_COLS;
-            uint16_t col = cursor_position % VGA_COLS;
+//            uint16_t col = cursor_position % VGA_COLS;
 
             // Move to the beginning of the next row
             row++;
