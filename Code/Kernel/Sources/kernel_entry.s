@@ -16,8 +16,9 @@ _entry:
     # is init_paging. Everything else can be done from within
     # _start.
 
-    # Initialize paging
-    call init_paging
+    # Initialize paging. init_paging is given a higher half address
+    # so we adjust it to its lower half address
+    call init_paging - KERNEL_HIGH_BASE
 
     # Now that the higher half is mapped we can use our higher
     # half stack
@@ -49,3 +50,21 @@ kernel_stack_top:
 esp0_stack_bottom:
     .skip 8192          # 8 KB stack
 esp0_stack_top:
+
+.global page_directory_low
+.set page_directory_low, page_directory - KERNEL_HIGH_BASE
+.align 4096
+page_directory:
+    .skip 4096
+
+.global first_page_table_low
+.set first_page_table_low, first_page_table - KERNEL_HIGH_BASE
+.align 4096
+first_page_table:
+    .skip 4096
+
+.global new_page_table_low
+.set new_page_table_low, new_page_table - KERNEL_HIGH_BASE
+.align 4096
+new_page_table:
+    .skip 4096

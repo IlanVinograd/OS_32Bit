@@ -8,14 +8,9 @@ SECTIONS {
     . = KERNEL_LOW_BASE + KERNEL_OFFSET;
 
     /* Kernel code and that will be run from low memory addresses */
-    .lowtext :
+    .lowentry :
     {
         *(.lowentry) /* Ensure .lowentry section is always first */
-        *(.lowtext)
-    }
-    .lowdata :
-    {
-        *(.lowdata)
     }
 
     /* 0xC0000000-0xC03FFFFF now mapped to 0x00000000-0x003FFFFF.
