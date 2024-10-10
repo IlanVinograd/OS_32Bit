@@ -1,6 +1,5 @@
 [BITS 32]
 
-extern idt_p           ; IDT pointer
 extern isr0_handler    ; C function to handle ISR0 (Divide by Zero)
 extern isr6_handler    ; C function to handle ISR6 (Invalid Opcode)
 extern isr13_handler    ; C function to handle ISR13 (General Protection Fault)
@@ -13,11 +12,6 @@ global isr13
 global isr14
 
 section .text
-
-; Function to load the IDT
-load_idt:
-    lidt [idt_p]       ; Load IDT pointer into the IDTR register
-    ret
 
 ; No need for CLI as interrupt gates have interrupts turned off
 ; by the CPU before they start executing a handler.
