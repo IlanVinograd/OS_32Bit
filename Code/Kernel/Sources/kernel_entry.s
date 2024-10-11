@@ -52,18 +52,21 @@ esp0_stack_bottom:
 esp0_stack_top:
 
 .global page_directory_low
+.global page_directory
 .set page_directory_low, page_directory - KERNEL_HIGH_BASE
 .align 4096
 page_directory:
     .skip 4096
 
 .global first_page_table_low
+.global first_page_table
 .set first_page_table_low, first_page_table - KERNEL_HIGH_BASE
 .align 4096
 first_page_table:
     .skip 4096
 
 .global new_page_table_low
+.global new_page_table
 .set new_page_table_low, new_page_table - KERNEL_HIGH_BASE
 .align 4096
 new_page_table:

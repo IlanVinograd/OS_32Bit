@@ -8,6 +8,10 @@ extern uintptr_t page_directory_low[1024];
 extern uintptr_t first_page_table_low[1024];
 extern uintptr_t new_page_table_low[1024];
 
+extern uintptr_t page_directory[1024];
+extern uintptr_t first_page_table[1024];
+extern uintptr_t new_page_table[1024];
+
 #define PAGE_SIZE 4096  // Size of each page (4KB)
 
 // Define bit flags for the entries in page directory/table
