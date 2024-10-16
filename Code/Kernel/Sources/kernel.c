@@ -1,11 +1,10 @@
-#include<kernel.h>
-#include<paging.h>
+#include "../Includes/kernel.h"
 
 void _start(void) {
     // Remove the identitiy mapping to the first 4MiB
     remove_first_4MiB_mapping();
 
-    init_idt();  // Initialize the IDT
+    init_idt();
     init_gdt();
 
     init_segments();
@@ -37,7 +36,7 @@ void _start(void) {
 
     /*
     // Test Page Fault (ISR14) - This will only work if paging is enabled
-    uint32_t *ptr = (uint32_t*)0xFFFFFFFF;  // Invalid address
+    uint32_t *ptr = (uint32_t*)0x0;  // Invalid address
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
     */
 
