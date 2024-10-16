@@ -119,7 +119,7 @@ protected_mode_entry:
     cld
     mov esi, KERNEL_LOAD_ADDR
     mov edi, KERNEL_RUN_ADDR
-    mov ecx, KERNEL_SECTORS * 512   ; Number of dwords
+    mov ecx, KERNEL_SECTORS * 512   ; Number of bytes
     rep movsb
 
     ; Jump to kernel entry point

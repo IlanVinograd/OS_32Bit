@@ -1,6 +1,10 @@
-#include "../Includes/kernel.h"
+#include<kernel.h>
+#include<paging.h>
 
 void _start(void) {
+    // Remove the identitiy mapping to the first 4MiB
+    remove_first_4MiB_mapping();
+
     init_idt();  // Initialize the IDT
     init_gdt();
 
@@ -23,12 +27,12 @@ void _start(void) {
 
     /*
     // Trigger Invalid Opcode Exception (ISR6)
-    asm volatile ("ud2");
+    __asm__("ud2");
     */
 
     /*
     // Test General Protection Fault (ISR13)
-    asm volatile ("int $13");  // This will trigger ISR13
+    __asm__("int $13");  // This will trigger ISR13
     */
 
     /*
@@ -37,5 +41,5 @@ void _start(void) {
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
     */
 
-    while (1) __asm__ __volatile__ ("hlt");  // Loop indefinitely
+    while (1) __asm__ ("hlt");  // Loop indefinitely
 }

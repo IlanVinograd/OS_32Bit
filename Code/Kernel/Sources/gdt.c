@@ -1,16 +1,13 @@
-#include "../Includes/gdt.h"
-
-// Should be moved to a .h file
-//#define KERNEL_HIGH_BASE 0xC0000000
-//#define KERNEL_LOW_BASE 0x00100000
-//#define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
-
-extern uint32_t esp0_stack_top;
+#include<gdt.h>
 
 // Declare the GDT with 6 entries
 struct gdt_entry gdt[6];
 struct gdt_ptr   gdtp;
 struct tss_entry tss;
+
+void lgdt(struct gdt_ptr* gdtp) {
+    __asm__ ("lgdt %0" :: "m"(*gdtp) : "memory");
+}
 
 void init_gdt() {
     // Setup the GDT pointer
@@ -44,10 +41,10 @@ void init_gdt() {
     // Initialize the TSS
     memset(&tss, 0, sizeof(tss));
     tss.ss0  = 0x10;      // Kernel data segment selector
-    tss.esp0 = (uint32_t)&esp0_stack_top;  // Stack pointer for ring 0 transitions
+    tss.esp0 = (uint32_t)esp0_stack_top;  // Stack pointer for ring 0 transitions
 
     // Load the TSS
-    __asm__ volatile ("ltr %%ax" : : "a" (0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
+    __asm__ ("ltr %0" : : "r" ((uint16_t)0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
 }
 
 void gdt_set_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
@@ -64,19 +61,19 @@ void gdt_set_entry(int num, uint32_t base, uint32_t limit, uint8_t access, uint8
 
 void init_segments() {
     // Reload code segment
-    __asm__ volatile (
+    __asm__ (
         "jmp $0x08, $.flush_cs\n"
-        ".flush_cs:\n"
+        ".flush_cs:\n" ::: "memory"
     );
 
     // Reload data segment registers
-    __asm__ volatile (
+    __asm__ (
         "mov $0x10, %%ax\n"
         "mov %%ax, %%ds\n"
         "mov %%ax, %%es\n"
         "mov %%ax, %%fs\n"
         "mov %%ax, %%gs\n"
         "mov %%ax, %%ss\n"
-        : : : "ax"
+        : : : "ax", "memory"
     );
 }
