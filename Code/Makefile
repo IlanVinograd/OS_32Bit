@@ -18,7 +18,7 @@ C_SOURCES := $(wildcard $(SOURCES)/*.c)
 C_OBJECTS := $(patsubst $(SOURCES)/%.c, $(OBJECTS)/%.o, $(C_SOURCES))
 
 # Add kernel_entry.s separately, since this is an assembler file
-ASM_SOURCES := $(SOURCES)/kernel_entry.s $(SOURCES)/gdt_flush.s
+ASM_SOURCES := $(SOURCES)/kernel_entry.s
 ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 
 # IDT source files
@@ -37,7 +37,7 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding
+CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3 -fomit-frame-pointer
 QEMU_IMG := qemu-img
 DD := dd
 NASM := nasm
