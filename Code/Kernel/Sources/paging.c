@@ -26,6 +26,9 @@ void init_paging(void) {
     // Add the page table to the page directory
     page_directory_low[0]   = ((uintptr_t)first_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
     page_directory_low[768] = ((uintptr_t)new_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
+    
+    //new_page_table_low[5] = (0x00005000) | PAGE_PRESENT | PAGE_WRITABLE;
+    //new_page_table_low[4] = (0x00004FFF) | PAGE_PRESENT | PAGE_WRITABLE;
 
     for (int i = 0; i < 1024; i++) {
         first_page_table_low[i] = (i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;

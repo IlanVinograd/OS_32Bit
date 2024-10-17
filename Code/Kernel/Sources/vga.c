@@ -127,6 +127,31 @@ void printf(const char* fmt, TextStyle style, ...) {
                     }
                     break;
                 }
+                case 'x': {
+                    // Print a hexadecimal integer
+                    int num = va_arg(args, int);
+                    char buffer[16];
+                    itoa(num, buffer, 16);  // Convert integer to hex string
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+                    break;
+                }
+                case 'l': {
+                    // Detect %llx for 64-bit hexadecimal
+                    if (*fmt == 'l' && *(fmt + 1) == 'x') {
+                        fmt += 2;  // Skip the 'llx'
+                        uint64_t num = va_arg(args, uint64_t);
+                        char buffer[17];  // Buffer for 64-bit hex string
+                        hexToString(num, (uint8_t*)buffer);  // Convert 64-bit integer to hex string
+                        char* p = buffer;
+                        while (*p) {
+                            putc(*p++, style);
+                        }
+                    }
+                    break;
+                }
                 default: {
                     // If it's an unknown specifier, just print it as is
                     putc('%', style);
@@ -138,7 +163,6 @@ void printf(const char* fmt, TextStyle style, ...) {
             // Handle newline character
             uint16_t cursor_position = getCursorPosition();
             uint16_t row = cursor_position / VGA_COLS;
-//            uint16_t col = cursor_position % VGA_COLS;
 
             // Move to the beginning of the next row
             row++;

@@ -7,6 +7,8 @@ KERNEL_LOAD_SEG    equ 0x1000
 KERNEL_LOAD_OFFSET equ 0x0000
 KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
 KERNEL_RUN_ADDR    equ 0x100000
+MEMORY_MAP_ADDR    equ 0x5000
+MEMORY_COUNT_ADDR    equ 0x4FFF
 
 jmp a20_enable
 
@@ -56,8 +58,51 @@ restore_registers_a20:
     sti                  ; Re-enable interrupts
 
 ; -------------------------
+; Detect Memory (INT 15h, AX=E820h)
+; -------------------------
+detect_memory:
+    push es
+    push di
+    push bp
+
+    mov ax, 0x0
+    mov es, ax
+    mov di, MEMORY_MAP_ADDR
+    xor ebx, ebx
+    xor bp, bp
+
+next_entry:
+    mov eax, 0xe820
+    mov edx, 0x534D4150
+    mov ecx, 24
+    int 0x15
+
+    jc mmap_done
+    cmp eax, 0x534D4150
+    jne mmap_done
+
+    mov cx, [es:di + 8]
+    or cx, [es:di + 12]
+    jz skip_entry
+
+    inc bp
+    add di, 24
+
+skip_entry:
+    test ebx, ebx
+    jne next_entry
+
+mmap_done:
+    mov [es:MEMORY_COUNT_ADDR], bp
+
+    pop bp
+    pop di
+    pop es
+
+; -------------------------
 ; Load kernel from disk
 ; -------------------------
+load_kernel:
     mov ax, KERNEL_LOAD_SEG
     mov es, ax          ; ES = KERNEL_LOAD_SEG
     mov bx, KERNEL_LOAD_OFFSET
@@ -176,4 +221,5 @@ print_string:
 ; Messages
 ; -------------------------
 msg_a20_enable db 'A20 line enabled successfully', 0x0D, 0x0A, 0
+msg_memory_detect_error db 'Memory detect error occurred', 0x0D, 0x0A, 0
 msg_disk_read_error db 'Disk read error!', 0x0D, 0x0A, 0

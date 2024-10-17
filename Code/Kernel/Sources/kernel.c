@@ -11,7 +11,8 @@ void _start(void) {
 
     clearScreen();
     setCursorPosition(0, 0);
-    initScreen("0.3");
+    init_memory_map();
+    //initScreen("0.3");
 
     /*
     You can uncomment the following ISR code and test it yourself.
