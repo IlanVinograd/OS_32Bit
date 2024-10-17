@@ -72,40 +72,31 @@ detect_memory:
     xor bp, bp
 
 next_entry:
-    mov eax, 0xe820
-    mov edx, 0x534D4150
-    mov ecx, 24
+    mov eax, 0xe820           ; E820h BIOS call for memory map
+    mov edx, 0x534D4150       ; 'SMAP' signature
+    mov ecx, 24               ; Specify entry size (assume 24 bytes)
     int 0x15
 
-    jc mmap_done
-    cmp eax, 0x534D4150
-    jne mmap_done
+    jc mmap_done              ; Jump if carry flag is set (error)
+    cmp eax, 0x534D4150       ; Check if signature is valid
+    jne mmap_done             ; Jump if signature doesn't match
 
-    ; Check if the entry size is 20 or 24 bytes
-    mov cx, [es:di + 8]    ; Low part of entry length
-    or cx, [es:di + 12]    ; High part of entry length
-    jz skip_entry          ; Skip entry if size is 0
+    ; Now check the full 64-bit length (2 parts: 16:31 and 48:63)
+    mov eax, [es:di + 8]      ; Low 32 bits of length
+    mov edx, [es:di + 12]     ; High 32 bits of length
+    or eax, edx               ; Combine both parts
+    jz skip_entry             ; Skip if length is zero
 
-    ; Check if the entry is 24 bytes long
-    mov ax, [es:di + 20]   ; Check extended attributes
-    cmp ax, 0
-    je entry_20_bytes      ; If zero, the entry is 20 bytes long
-
-    ; Handle 24-byte entry
-    inc bp                 ; Increment the memory block count
-    add di, 24             ; Move to the next entry
-    jmp skip_entry
-
-entry_20_bytes:
-    inc bp                 ; Increment the memory block count
-    add di, 20             ; Move to the next entry (20-byte entry)
+    ; Increment memory block count and move DI based on actual entry size
+    inc bp
+    add di, cx               ; Add the lower 16 bits of the size to DI
 
 skip_entry:
     test ebx, ebx
-    jne next_entry
+    jne next_entry            ; If EBX != 0, get the next entry
 
 mmap_done:
-    mov [es:MEMORY_COUNT_ADDR], bp
+    mov [es:MEMORY_COUNT_ADDR], bp ; Store the memory entry count
 
     pop bp
     pop di
