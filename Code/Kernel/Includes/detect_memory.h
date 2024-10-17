@@ -5,7 +5,7 @@
 #include <vga.h>
 
 #define MEMORY_MAP_VADDR    0xC0005000
-#define COUNT_ENTRIES_VADDR 0xC0004FFF
+#define COUNT_ENTRIES_VADDR 0xC0004FFE
 
 typedef struct {
     uint64_t base_addr;   // Base address

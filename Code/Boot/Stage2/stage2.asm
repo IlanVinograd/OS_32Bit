@@ -8,7 +8,7 @@ KERNEL_LOAD_OFFSET equ 0x0000
 KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
 KERNEL_RUN_ADDR    equ 0x100000
 MEMORY_MAP_ADDR    equ 0x5000
-MEMORY_COUNT_ADDR    equ 0x4FFF
+MEMORY_COUNT_ADDR    equ 0x4FFE
 
 jmp a20_enable
 
@@ -81,12 +81,24 @@ next_entry:
     cmp eax, 0x534D4150
     jne mmap_done
 
-    mov cx, [es:di + 8]
-    or cx, [es:di + 12]
-    jz skip_entry
+    ; Check if the entry size is 20 or 24 bytes
+    mov cx, [es:di + 8]    ; Low part of entry length
+    or cx, [es:di + 12]    ; High part of entry length
+    jz skip_entry          ; Skip entry if size is 0
 
-    inc bp
-    add di, 24
+    ; Check if the entry is 24 bytes long
+    mov ax, [es:di + 20]   ; Check extended attributes
+    cmp ax, 0
+    je entry_20_bytes      ; If zero, the entry is 20 bytes long
+
+    ; Handle 24-byte entry
+    inc bp                 ; Increment the memory block count
+    add di, 24             ; Move to the next entry
+    jmp skip_entry
+
+entry_20_bytes:
+    inc bp                 ; Increment the memory block count
+    add di, 20             ; Move to the next entry (20-byte entry)
 
 skip_entry:
     test ebx, ebx
