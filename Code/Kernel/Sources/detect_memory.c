@@ -2,7 +2,7 @@
 
 void init_memory_map() {
     memory_map_entry_t* mem_map = (memory_map_entry_t*)MEMORY_MAP_VADDR;
-    
+
     uint8_t count = *((uint8_t*)COUNT_ENTRIES_VADDR);
     printf("Memory map entry count: %d\n\n", COLOR_BLACK_ON_WHITE, count);
 

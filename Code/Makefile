@@ -37,7 +37,7 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding
+CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3 -fomit-frame-pointer
 QEMU_IMG := qemu-img
 DD := dd
 NASM := nasm
@@ -72,11 +72,15 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC)
 	@echo "Assembling IDT ASM code..."
 	$(NASM) -f elf32 $(IDT_ASM_SRC) -o $(IDT_ASM_OBJ)
 
-# Compile and link the kernel, include IDT object files
-$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
-	@echo "Compiling and linking Kernel with IDT..."
+# Linking Kernel to an ELF executable..."
+$(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
+	@echo "Linking Kernel to an ELF executable..."
 	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ)
-	i686-elf-objcopy -O binary $(KERNEL_ELF) $(KERNEL_BIN)
+
+# Creating a binary version of the Kernel ELF file..."
+$(KERNEL_BIN): $(KERNEL_ELF)
+	@echo "Creating a binary version of the Kernel ELF file..."
+	i686-elf-objcopy -O binary $< $@
 
 # Rule to compile C source files into object files
 $(OBJECTS)/%.o: $(SOURCES)/%.c

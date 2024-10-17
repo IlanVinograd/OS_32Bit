@@ -20,9 +20,9 @@ void _start(void) {
 
     /*
     // Trigger Divide by Zero Exception (ISR0)
-    int a = 10;
-    int b = 0;
-    int c = a / b;
+    // Creating C code that causes a division by 0 is undefined behaviour.
+    // Use inline assembly to produce a divide by zero.
+    __asm__ ("div %b0" :: "a"(0));
     */
 
     /*
@@ -35,10 +35,12 @@ void _start(void) {
     __asm__("int $13");  // This will trigger ISR13
     */
 
+    // Mark volatile so the optimizer can't optimize away ptr altogether
     /*
     // Test Page Fault (ISR14) - This will only work if paging is enabled
-    uint32_t *ptr = (uint32_t*)0x0;  // Invalid address
+    volatile uint32_t *ptr = (uint32_t*)0x0;  // Invalid address
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
+    (void) data;           // Avoid compiler warning about unused variable
     */
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
