@@ -7,6 +7,7 @@
 extern uintptr_t page_directory_low[1024];
 extern uintptr_t first_page_table_low[1024];
 extern uintptr_t new_page_table_low[1024];
+extern uintptr_t new_page_alloc_table_high[1024];
 
 extern uintptr_t page_directory[1024];
 extern uintptr_t first_page_table[1024];

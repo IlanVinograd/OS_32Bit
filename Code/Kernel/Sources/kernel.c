@@ -11,7 +11,7 @@ void _start(void) {
 
     clearScreen();
     setCursorPosition(0, 0);
-    init_memory_map();
+    //init_memory_map();
     //initScreen("0.3");
 
     /*
@@ -36,12 +36,12 @@ void _start(void) {
     */
 
     // Mark volatile so the optimizer can't optimize away ptr altogether
-    /*
+    
     // Test Page Fault (ISR14) - This will only work if paging is enabled
-    volatile uint32_t *ptr = (uint32_t*)0x0;  // Invalid address
+    volatile uint32_t *ptr = (uint32_t*)0xC0400000;  // Invalid address
     uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
     (void) data;           // Avoid compiler warning about unused variable
-    */
+    
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
 }

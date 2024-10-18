@@ -71,3 +71,9 @@ first_page_table:
 .align 4096
 new_page_table:
     .skip 4096
+
+.global new_page_alloc_table_high
+.set new_page_alloc_table_high, new_page_alloc_table - KERNEL_HIGH_BASE
+.align 4096
+new_page_alloc_table:
+    .skip 4096

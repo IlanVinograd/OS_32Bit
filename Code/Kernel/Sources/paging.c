@@ -26,9 +26,7 @@ void init_paging(void) {
     // Add the page table to the page directory
     page_directory_low[0]   = ((uintptr_t)first_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
     page_directory_low[768] = ((uintptr_t)new_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
-    
-    //new_page_table_low[5] = (0x00005000) | PAGE_PRESENT | PAGE_WRITABLE;
-    //new_page_table_low[4] = (0x00004FFF) | PAGE_PRESENT | PAGE_WRITABLE;
+    page_directory_low[769] = ((uintptr_t)new_page_alloc_table_high) | PAGE_PRESENT | PAGE_WRITABLE; // page table for page_alloc
 
     for (int i = 0; i < 1024; i++) {
         first_page_table_low[i] = (i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
@@ -37,6 +35,11 @@ void init_paging(void) {
     /* Map 0xC0000000-0xC03FFFFF to 0x00000000-0x003FFFFF. */
     for (int i = 0; i < 1024; i++) {
         new_page_table_low[i] = (0x000000 + i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
+    }
+
+    /* Map 0xC0400000-0xC07FFFFF */
+    for (int i = 0; i < 1024; i++) {
+        new_page_alloc_table_high[i] = (0xC0400000 + i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
     }
 
     // Load the page directory address into the CR3 register
