@@ -11,8 +11,8 @@ void _start(void) {
 
     clearScreen();
     setCursorPosition(0, 0);
-    //init_memory_map();
     //initScreen("0.3");
+    //init_memory_map();
 
     /*
     You can uncomment the following ISR code and test it yourself.
@@ -38,9 +38,13 @@ void _start(void) {
     // Mark volatile so the optimizer can't optimize away ptr altogether
     
     // Test Page Fault (ISR14) - This will only work if paging is enabled
-    volatile uint32_t *ptr = (uint32_t*)0xC0400000;  // Invalid address
-    uint32_t data = *ptr;  // Dereference invalid memory (triggers ISR14)
-    (void) data;           // Avoid compiler warning about unused variable
+    
+   volatile uint8_t *ptr = (uint8_t *)0xC07FFFFF;  // A range that might not be mapped
+   uint8_t value = *ptr;  // This should trigger a page fault if it's unmapped
+   (void)value;  // Avoid compiler warning
+
+
+    
     
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
