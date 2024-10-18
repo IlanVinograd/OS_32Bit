@@ -6,10 +6,10 @@ void _start(void) {
 
     init_idt();
     init_gdt();
-
     init_segments();
 
     clearScreen();
+    init_bitmap();
     setCursorPosition(0, 0);
     //initScreen("0.3");
     //init_memory_map();
@@ -38,11 +38,11 @@ void _start(void) {
     // Mark volatile so the optimizer can't optimize away ptr altogether
     
     // Test Page Fault (ISR14) - This will only work if paging is enabled
-    
-   volatile uint8_t *ptr = (uint8_t *)0xC07FFFFF;  // A range that might not be mapped
-   uint8_t value = *ptr;  // This should trigger a page fault if it's unmapped
-   (void)value;  // Avoid compiler warning
-
+    /*
+    volatile uint8_t *ptr = (uint8_t *)0xC0900000;  // A range that might not be mapped
+    uint8_t value = *ptr;  // This should trigger a page fault if it's unmapped
+    (void)value;  // Avoid compiler warning
+    */
 
     
     
