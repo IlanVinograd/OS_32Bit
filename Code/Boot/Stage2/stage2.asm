@@ -72,6 +72,8 @@ detect_memory:
     xor bp, bp
 
 next_entry:
+    mov dword [es:di + 20], 1 ; Set ACPI extended attribute to 1 IF
+                              ;    a 20 byte record is returned
     mov eax, 0xe820           ; E820h BIOS call for memory map
     mov edx, 0x534D4150       ; 'SMAP' signature
     mov ecx, 24               ; Specify entry size (assume 24 bytes)
@@ -81,15 +83,22 @@ next_entry:
     cmp eax, 0x534D4150       ; Check if signature is valid
     jne mmap_done             ; Jump if signature doesn't match
 
+    ; If size is 24 and the ACPI ignore this data flag is 0 then skip entry
+    cmp cl, 20                ; got a 24 byte ACPI 3.X response?
+    jbe not_ext
+    test byte [es:di + 20], 1 ; Is the "ignore this data" bit clear?
+    je skip_entry             ;     if it is skip the entry
+
+not_ext:
     ; Now check the full 64-bit length (2 parts: 16:31 and 48:63)
     mov eax, [es:di + 8]      ; Low 32 bits of length
     mov edx, [es:di + 12]     ; High 32 bits of length
     or eax, edx               ; Combine both parts
     jz skip_entry             ; Skip if length is zero
 
-    ; Increment memory block count and move DI based on actual entry size
+    ; Increment memory block count and advance DI to start of next record
     inc bp
-    add di, cx               ; Add the lower 16 bits of the size to DI
+    add di, 24                ; Make all entries 24 bytes - advance to next index
 
 skip_entry:
     test ebx, ebx
