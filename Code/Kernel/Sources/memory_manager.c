@@ -5,7 +5,7 @@ void* page_alloc(uint32_t num_pages){
 
     if (allocated_address == NULL) return NULL;
 
-    mark_pages_as_used(allocated_address, num_pages);
+    //mark_pages_as_used(page_number);
 
     return allocated_address;
 }

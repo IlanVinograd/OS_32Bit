@@ -127,11 +127,33 @@ void printf(const char* fmt, TextStyle style, ...) {
                     }
                     break;
                 }
+                case 'u': {
+                    // Print an unsigned integer
+                    unsigned int num = va_arg(args, unsigned int);
+                    char buffer[16];  // Buffer to hold the string representation of the number
+                    utoa(num, buffer, 10);  // Convert unsigned integer to string (base 10)
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+                    break;
+                }
                 case 'x': {
                     // Print a hexadecimal integer
                     int num = va_arg(args, int);
                     char buffer[16];
                     itoa(num, buffer, 16);  // Convert integer to hex string
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+                    break;
+                }
+                case 'p': {
+                    // Print a pointer address
+                    uintptr_t ptr = (uintptr_t)va_arg(args, void*);  // Cast the pointer to uintptr_t
+                    char buffer[17];  // Buffer for the hexadecimal string
+                    hexToString(ptr, (uint8_t*)buffer);  // Convert the address to a hexadecimal string
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
