@@ -7,6 +7,10 @@
         "kernel.h": "c",
         "ctype.h": "c",
         "paging.h": "c",
-        "io.h": "c"
+        "io.h": "c",
+        "idt.h": "c",
+        "gdt.h": "c",
+        "memory_manager.h": "c",
+        "detect_memory.h": "c"
     }
 }

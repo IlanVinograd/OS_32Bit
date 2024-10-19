@@ -16,4 +16,7 @@ void boolToChar(bool_t vIn, uint8_t* str);
 int32_t hexToString(uint64_t num, uint8_t* str);
 // Converts a hexadecimal value to a string.
 
+void utoa(uint32_t num, char* str, int32_t base);
+// Converts an unsigned integer to a string.
+
 #endif /* _STDLIB_H_ */
