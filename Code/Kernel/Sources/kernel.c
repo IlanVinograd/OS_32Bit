@@ -26,7 +26,7 @@ void _start(void) {
     // tests //
     //test_bitmap();
     //test_alloc_medium();
-    //test_alloc_hard();
+    test_alloc_hard();
     //test_alloc_even_hard();
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
