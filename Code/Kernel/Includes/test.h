@@ -12,4 +12,8 @@ void test_isr6();
 void test_isr13();
 void test_isr14();
 
+void test_alloc_medium();
+void test_alloc_hard();
+void test_alloc_even_hard();
+
 #endif

@@ -106,3 +106,255 @@ void test_isr14(){
     uint8_t value = *ptr;  // This should trigger a page fault if it's unmapped
     (void)value;  // Avoid compiler warning
 }
+
+void test_alloc_medium(){
+    // Slightly harder tests //
+int i = 0;
+
+// Loop with more iterations and slightly larger allocations
+while (i < 40) {  // Increased the number of iterations slightly
+    setCursorPosition(0, 0);
+    
+    // Allocate small block
+    void* ptr1 = malloc(75);  // Slightly larger allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Allocate small block well below page size
+    void* ptr2 = malloc(1200);  // Increased size but still small
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free and reallocate memory in different order
+    free(ptr1);
+    void* ptr3 = malloc(800);  // Moderate reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free small block
+    free(ptr2);
+    void* ptr4 = malloc(1200);  // Similar size as ptr2
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free everything
+    free(ptr3);
+    free(ptr4);
+
+    i++;
+    }
+
+// Boundary testing with slightly more iterations and larger blocks
+for (int j = 0; j < 20; j++) {  // Increased the iterations a bit
+    void* ptr1 = malloc(1024);  // One-quarter of a page
+    setCursorPosition(0, 0);
+    print_bitmap();
+    
+    void* ptr2 = malloc(50);  // Small allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    void* ptr3 = malloc(512);  // Moderate block size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free them in specific order
+    free(ptr2);
+    free(ptr1);
+    free(ptr3);
+
+    void* ptr4 = malloc(1800); // Moderate block, below half a page
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr4);
+    }
+
+// Interleaved malloc/free with small and moderate sizes
+for (int k = 0; k < 35; k++) {  // Increased complexity slightly
+    void* ptr1 = malloc(150);    // Small allocation
+    void* ptr2 = malloc(400);    // Moderate size
+    void* ptr3 = malloc(1000);   // Larger but still below a page
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr2);  // Free in the middle
+    void* ptr4 = malloc(600);   // Slightly larger reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr1);
+    free(ptr3);
+    free(ptr4);
+    setCursorPosition(0, 0);
+    print_bitmap();
+    }   
+}
+
+void test_alloc_hard(){
+    // Harder tests //
+int i = 0;
+
+// Loop with more iterations and larger allocations
+while (i < 50) {  // Increased the number of iterations slightly more
+    setCursorPosition(0, 0);
+    
+    // Allocate small block
+    void* ptr1 = malloc(100);  // Slightly larger allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Allocate small block well below page size
+    void* ptr2 = malloc(1500);  // Increased size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free and reallocate memory in different order
+    free(ptr1);
+    void* ptr3 = malloc(1000);  // Larger reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free small block
+    free(ptr2);
+    void* ptr4 = malloc(2000);  // Larger block size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free everything
+    free(ptr3);
+    free(ptr4);
+
+    i++;
+    }
+
+// Boundary testing with larger blocks and moderate iterations
+for (int j = 0; j < 30; j++) {  // Increased the iterations and size
+    void* ptr1 = malloc(1500);  // Moderate allocation size
+    setCursorPosition(0, 0);
+    print_bitmap();
+    
+    void* ptr2 = malloc(75);  // Small allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    void* ptr3 = malloc(800);  // Moderate block size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free them in specific order
+    free(ptr2);
+    free(ptr1);
+    free(ptr3);
+
+    void* ptr4 = malloc(2500); // Slightly larger block
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr4);
+    }
+
+// Interleaved malloc/free with larger sizes
+for (int k = 0; k < 40; k++) {  // Slightly increased iterations
+    void* ptr1 = malloc(200);    // Small allocation
+    void* ptr2 = malloc(600);    // Moderate size
+    void* ptr3 = malloc(1500);   // Larger block below full page
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr2);  // Free in the middle
+    void* ptr4 = malloc(1000);   // Larger reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr1);
+    free(ptr3);
+    free(ptr4);
+    setCursorPosition(0, 0);
+    print_bitmap();
+    }
+}
+
+void test_alloc_even_hard(){
+    // Harder tests //
+int i = 0;
+
+// Loop with increased iterations and larger allocations
+while (i < 70) {  // Increased the number of iterations
+    setCursorPosition(0, 0);
+    
+    // Allocate moderate block
+    void* ptr1 = malloc(200);  // Slightly larger allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Allocate larger block well below page size
+    void* ptr2 = malloc(2200);  // Increased size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free and reallocate memory in different order
+    free(ptr1);
+    void* ptr3 = malloc(1500);  // Larger reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free larger block
+    free(ptr2);
+    void* ptr4 = malloc(3000);  // Large block size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free everything
+    free(ptr3);
+    free(ptr4);
+
+    i++;
+    }
+
+// Boundary testing with larger blocks and more iterations
+for (int j = 0; j < 50; j++) {  // Increased the iterations more
+    void* ptr1 = malloc(2500);  // Larger allocation size
+    setCursorPosition(0, 0);
+    print_bitmap();
+    
+    void* ptr2 = malloc(150);  // Small allocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    void* ptr3 = malloc(1200);  // Moderate block size
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    // Free them in specific order
+    free(ptr2);
+    free(ptr1);
+    free(ptr3);
+
+    void* ptr4 = malloc(3500); // Larger block
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr4);
+    }
+
+// Interleaved malloc/free with larger sizes
+for (int k = 0; k < 60; k++) {  // Further increased iterations
+    void* ptr1 = malloc(300);    // Small allocation
+    void* ptr2 = malloc(1000);   // Moderate size
+    void* ptr3 = malloc(2200);   // Larger block, still below a page
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr2);  // Free in the middle
+    void* ptr4 = malloc(1600);   // Larger reallocation
+    setCursorPosition(0, 0);
+    print_bitmap();
+
+    free(ptr1);
+    free(ptr3);
+    free(ptr4);
+    setCursorPosition(0, 0);
+    print_bitmap();
+    }
+}

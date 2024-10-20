@@ -13,6 +13,7 @@ void _start(void) {
     setCursorPosition(0, 0);
     //initScreen("0.3");
     //init_memory_map();
+    /*
     page_alloc(213);
     mark_pages_as_used(214);
     mark_pages_as_used(216);
@@ -21,9 +22,12 @@ void _start(void) {
     page_alloc(5);
     mark_page_as_free(0);
     printf("%p", COLOR_BLINKING_YELLOW, find_allocated_page());
-    print_bitmap();
+    */
     // tests //
     //test_bitmap();
+    //test_alloc_medium();
+    //test_alloc_hard();
+    //test_alloc_even_hard();
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
 }
