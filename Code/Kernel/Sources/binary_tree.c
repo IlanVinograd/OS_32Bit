@@ -11,7 +11,7 @@ void* find_free_block_in_binary_tree(binary_tree_node_t* node, uint32_t size) {
     // Traverse the binary tree to find a free block of the requested size
     if (node->is_free && node->size >= size) {
         node->is_free = 0;  // Mark the block as used
-        return (void*)((uintptr_t)node->address + KERNEL_HIGH_BASE);  // Adjust address with KERNEL_HIGH_BASE
+        return (void*)((uintptr_t)node->address + 0);  // Adjust address with KERNEL_HIGH_BASE
     }
     
     // Traverse the tree (left for smaller, right for larger)
@@ -47,7 +47,7 @@ void* allocate_block_from_page(binary_tree_node_t* node, uint32_t size) {
 
     if (node->size == size) {
         node->is_free = 0;  // Exact match, mark as used
-        return (void*)((uintptr_t)node->address + KERNEL_HIGH_BASE);  // Adjust address with KERNEL_HIGH_BASE
+        return (void*)((uintptr_t)node->address + 0);  // Adjust address with KERNEL_HIGH_BASE
     }
 
     // If the block is too large, split it into two

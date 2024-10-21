@@ -11,6 +11,10 @@ void _start(void) {
     clearScreen();
     init_bitmap();
     setCursorPosition(0, 0);
+    void* ptr = malloc(1);
+    printf("%p", COLOR_BLACK_ON_WHITE, ptr);
+    //*(uint8_t*)((uintptr_t)ptr + KERNEL_HIGH_BASE) = 16;
+    print_bitmap();
     //initScreen("0.3");
     //init_memory_map();
     /*
@@ -26,7 +30,7 @@ void _start(void) {
     // tests //
     //test_bitmap();
     //test_alloc_medium();
-    test_alloc_hard();
+    //test_alloc_hard();
     //test_alloc_even_hard();
 
     while (1) __asm__ ("hlt");  // Loop indefinitely
