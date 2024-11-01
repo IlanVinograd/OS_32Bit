@@ -5,7 +5,6 @@
 #define KERNEL_LOW_BASE    0x00000000
 #define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
 
-#include <binary_tree.h>
 #include <memory_manager.h>
 #include <test.h>
 #include <bitmap.h>

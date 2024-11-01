@@ -6,14 +6,12 @@
 #include <bitmap.h>
 #include <paging.h>
 
+void delay(uint32_t count);
 void test_bitmap();
 void test_isr0();
 void test_isr6();
 void test_isr13();
 void test_isr14();
-
-void test_alloc_medium();
-void test_alloc_hard();
-void test_alloc_even_hard();
+void test_malloc_fragmentation_large_scale();
 
 #endif
