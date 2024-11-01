@@ -27,6 +27,20 @@ void init_bitmap(){
     memset(bitmap, 0, sizeof(bitmap));
 }
 
+void* find_allocated_page() {
+    for (uint32_t page_number = 0; page_number < NUM_PAGES; page_number++) {
+        void* allocated_address;
+        if(!is_page_free(page_number)){
+            allocated_address = (void*)(MEM_ALLOC_START + (page_number * PAGE_SIZE));
+            return allocated_address;
+        }
+    }
+
+    // If no block of allocated page was found, return NULL
+    printf("Error: No block of allocated page found!\n", RED_ON_BLACK_WARNING);
+    return NULL;
+}
+
 void* find_free_pages(uint32_t num_pages) {
     if(num_pages > 1023) {
         printf("Error: Page number out of bounds!\n", RED_ON_BLACK_WARNING);

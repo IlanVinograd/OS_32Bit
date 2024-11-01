@@ -11,6 +11,7 @@
         "idt.h": "c",
         "gdt.h": "c",
         "memory_manager.h": "c",
-        "detect_memory.h": "c"
+        "detect_memory.h": "c",
+        "bitmap.h": "c"
     }
 }

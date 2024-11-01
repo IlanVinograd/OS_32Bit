@@ -18,6 +18,7 @@ extern uint32_t bitmap[BITMAP_SIZE];
 void print_bitmap();
 void  init_bitmap();
 void* find_free_pages(uint32_t num_pages);
+void* find_allocated_page();
 bool_t is_page_free(uint32_t page_number);
 void  mark_pages_as_used(uint32_t page_number);
 void mark_page_as_free(uint32_t page_number);

@@ -1,5 +1,11 @@
 #include "../Includes/test.h"
 
+void delay(uint32_t count) {
+    while (count--) {
+        __asm__ volatile ("nop");
+    }
+}
+
 void test_bitmap() {
     // Edge Case 1: Allocate the first page
     printf("Test 1: Allocating the first page (0)...\n", COLOR_BLACK_ON_WHITE);
@@ -105,4 +111,132 @@ void test_isr14(){
     volatile uint8_t *ptr = (uint8_t *)0xC0900000;  // A range that might not be mapped
     uint8_t value = *ptr;  // This should trigger a page fault if it's unmapped
     (void)value;  // Avoid compiler warning
+}
+
+void test_malloc_fragmentation_large_scale() {
+    setCursorPosition(23, 0);
+    printf("Running large-scale fragmentation stress test...\n", COLOR_BLINKING_YELLOW);
+    setCursorPosition(0, 0);
+
+    // Step 1: Allocate 900 pages for large blocks (above 4097 bytes)
+    setCursorPosition(22, 0);
+    printf("Subtest 1: Allocating 900 large blocks (above 4097 bytes)...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    void* large_blocks[900];
+
+    for (int i = 0; i < 300; i++) {
+        large_blocks[i] = malloc(4097 + (i * 16));  // Large blocks of increasing sizes
+        if (large_blocks[i] == NULL) {
+            printf("Error: Allocation failed for large block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
+    }
+
+    // Step 2: Free every fifth large block to create heavy fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 2: Freeing every fifth large block to create fragmentation...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    for (int i = 0; i < 300; i += 5) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
+    }
+
+    // Step 3: Allocate 90 pages for smaller blocks (under 4096 bytes)
+    setCursorPosition(22, 0);
+    printf("Subtest 3: Allocating 90 smaller blocks (under 4096 bytes)...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    void* small_blocks[90];
+
+    for (int i = 0; i < 40; i++) {
+        small_blocks[i] = malloc(1024 + (i * 32));  // Small blocks of increasing sizes
+        if (small_blocks[i] == NULL) {
+            printf("Warning: Allocation failed for small block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
+    }
+
+    // Step 4: Free every third small block to introduce more fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 4: Freeing every third small block...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    for (int i = 0; i < 40; i += 3) {
+        if (small_blocks[i] != NULL) {
+            free(small_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
+    }
+
+    // Step 5: Allocate new large blocks in fragmented memory
+    setCursorPosition(22, 0);
+    printf("Subtest 5: Allocating new large blocks in fragmented memory...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    for (int i = 0; i < 100; i++) {
+        large_blocks[i] = malloc(8192 + (i * 32));  // Allocate new large blocks
+        if (large_blocks[i] == NULL) {
+            printf("Error: Allocation failed for new large block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
+    }
+
+    // Step 6: Free every sixth large block to create more fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 6: Freeing every sixth large block...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    for (int i = 0; i < 300; i += 6) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
+    }
+
+    // Step 7: Final cleanup of all remaining blocks
+    setCursorPosition(22, 0);
+    printf("Subtest 7: Final cleanup of all blocks...", YELLOW_ON_BLACK_CAUTION);
+    setCursorPosition(0, 0);
+    for (int i = 0; i < 300; i++) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
+    }
+    for (int i = 0; i < 40; i++) {
+        if (small_blocks[i] != NULL) {
+            free(small_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
+    }
+
+    print_bitmap();
+    setCursorPosition(23, 0);
+    printf("Large-scale fragmentation stress test completed.\n", GREEN_ON_BLACK_SUCCESS);
+    setCursorPosition(0, 0);
 }
