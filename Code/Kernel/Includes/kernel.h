@@ -20,4 +20,6 @@
 #include <idt.h>
 #include <gdt.h>
 
+extern uint32_t pagesAllocated;
+
 #endif

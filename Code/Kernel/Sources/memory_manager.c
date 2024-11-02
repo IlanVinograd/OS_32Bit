@@ -5,12 +5,15 @@ static FreeBlock* current = NULL;
 static void* alloc_list_start = NULL;
 static void* alloc_list_end = NULL;
 
+uint32_t pagesAllocated = 0;
+
 void* page_alloc(uint32_t num_pages) {
     void* allocated_address = find_free_pages(num_pages);
     if (allocated_address == NULL) {
         printf("Warning: page_alloc failed to allocate memory! [Page Allocation Error Code: %d]\n", RED_ON_BLACK_WARNING);
         return NULL;
     }
+    pagesAllocated += num_pages;
     return (void*)((uintptr_t)allocated_address + KERNEL_HIGH_BASE);
 }
 
@@ -21,6 +24,7 @@ void free_large_pages(void* block, uint32_t size) {
 
     for (uint32_t i = 0; i < num_pages; i++) {
         mark_page_as_free(start_page + i);
+        pagesAllocated--;
     }
 }
 
@@ -116,9 +120,51 @@ void free(void* block) {
 
         // Calculate the starting physical address to free
         uintptr_t start_address = (uintptr_t)header - KERNEL_HIGH_BASE - MEM_ALLOC_START;
+
         // Free the pages in the bitmap
+        pagesAllocated -= num_pages;
+
         for (uint32_t i = 0; i < num_pages; i++) {
             mark_page_as_free((start_address / PAGE_SIZE) + i);
         }
     }
+}
+
+void* calloc(uint32_t num, uint32_t size){
+    void* ptr = malloc(num * size);
+    if (ptr != NULL) memset(ptr, 0, num * size);
+    return malloc(num * size);
+}
+
+void* realloc(void* ptr, uint32_t new_size){
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
+    }
+    
+    free(ptr);
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    memcpy(new_ptr, ptr, new_size);
+
+    return new_ptr;
+}
+
+void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size){
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    uint32_t copy_size = (ptr_size < new_size) ? ptr_size : new_size;
+    memcpy(new_ptr, ptr, copy_size);
+    
+    free(ptr);
+    return new_ptr;
 }

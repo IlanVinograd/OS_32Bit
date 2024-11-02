@@ -5,6 +5,7 @@
 #include <vga.h>
 #include <bitmap.h>
 #include <paging.h>
+#include <memory_manager.h>
 
 void delay(uint32_t count);
 void test_bitmap();
