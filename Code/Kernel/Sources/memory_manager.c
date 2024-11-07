@@ -1,7 +1,7 @@
 #include "../Includes/memory_manager.h"
 
 // Pointers for managing the heap's free list
-static FreeBlock* current = NULL;
+static FreeBlock* current_free_block = NULL;
 static void* alloc_list_start = NULL;
 static void* alloc_list_end = NULL;
 
@@ -37,11 +37,11 @@ void init_free_list() {
 
     alloc_list_end = (void*)((uintptr_t)alloc_list_start + (PAGE_SIZE * PAGES_FOR_HEAP));
 
-    current = (FreeBlock*)alloc_list_start;
-    current->size = PAGE_SIZE * PAGES_FOR_HEAP;
-    current->address = (void*)((uintptr_t)alloc_list_start + sizeof(FreeBlock));
-    current->next = NULL;
-    current->isFree = true;
+    current_free_block = (FreeBlock*)alloc_list_start;
+    current_free_block->size = PAGE_SIZE * PAGES_FOR_HEAP;
+    current_free_block->address = (void*)((uintptr_t)alloc_list_start + sizeof(FreeBlock));
+    current_free_block->next = NULL;
+    current_free_block->isFree = true;
 }
 
 void* malloc(uint32_t size) {
@@ -63,7 +63,7 @@ void* malloc(uint32_t size) {
         return (void*)((uintptr_t)new_address + sizeof(AllocationHeader));
     } else {
         // Allocate from the free list for smaller sizes
-        FreeBlock* temp = current;
+        FreeBlock* temp = current_free_block;
         FreeBlock* prev = NULL;
 
         while (temp != NULL) {
@@ -100,7 +100,7 @@ void free(void* block) {
 
     // Check if the block is part of the heap (less than 4096 bytes)
     if (block_address >= (uintptr_t)alloc_list_start && block_address < (uintptr_t)alloc_list_end) {
-        FreeBlock* temp = current;
+        FreeBlock* temp = current_free_block;
         while (temp != NULL) {
             if (temp->address == block) {
                 temp->isFree = true;
@@ -130,29 +130,29 @@ void free(void* block) {
     }
 }
 
-void* calloc(uint32_t num, uint32_t size){
+void* calloc(uint32_t num, uint32_t size) {
     void* ptr = malloc(num * size);
     if (ptr != NULL) memset(ptr, 0, num * size);
-    return malloc(num * size);
+    return ptr;
 }
 
-void* realloc(void* ptr, uint32_t new_size){
+void* realloc(void* ptr, uint32_t new_size) {
     if (ptr == NULL) return malloc(new_size);
     if (new_size == 0) {
         free(ptr);
         return NULL;
     }
     
-    free(ptr);
     void* new_ptr = malloc(new_size);
     if (new_ptr == NULL) return NULL;
 
     memcpy(new_ptr, ptr, new_size);
+    free(ptr);
 
     return new_ptr;
 }
 
-void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size){
+void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size) {
     if (ptr == NULL) return malloc(new_size);
     if (new_size == 0) {
         free(ptr);
