@@ -55,19 +55,18 @@ void _start(void) {
     // Cooperative multitasking.
     __asm__("sti");
 
-    // Create sample work takss
+    // Create sample work tasks
     create_task((uintptr_t)task1_entry);
     create_task((uintptr_t)task2_entry);
 
     setCursorPosition(0,24);
     print_task_and_count();
 
-    // This iis the controlling task that waits until
-    // All other tasks are completed and then exits.
+    // This is the controlling task that waits until
+    // all other tasks are completed and then continues normally
     while(nowTasks > 1) {
         yield();
     }
-
     setCursorPosition(24, 0);
     printf("DONE\n",COLOR_BLACK_ON_WHITE);
 
