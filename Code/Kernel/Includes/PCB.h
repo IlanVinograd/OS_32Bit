@@ -23,13 +23,15 @@ typedef struct task {
     uint32_t pid;               // Process ID
     enum State state;           // Process state
     uintptr_t pc;               // Program Counter
-    uintptr_t sp;               // Stack Pointer
-    uint32_t registers[8];      // General-purpose registers
+    uintptr_t *sp;              // Stack Pointer
+    uintptr_t esp0;             // Stack Pointer
+    uintptr_t ss0;              // Stack Pointer
     uint32_t flags;             // Status/Flags register
     struct task *next;          // Pointer to the next task in the list
 } task;
 
 extern task* current;
+extern uint32_t nowTasks;
 
 task* create_task(uintptr_t task_entry_function);
 void remove_task(struct task* task_terminate);

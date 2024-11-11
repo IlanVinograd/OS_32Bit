@@ -12,9 +12,9 @@ void pit_init(uint32_t frequency) {
 
 void pit_handler(void) {
     tick_count++;
-    setCursorPosition(0, 30);
-    printf("Bitmap state: Pages ( %d / %d ) \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES);
-    schedule();
+//    setCursorPosition(23, 0);
+//    printf("Bitmap state: Pages ( %d / %d ) \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES);
+//    schedule();
     pic_send_eoi(0);
 }
 
