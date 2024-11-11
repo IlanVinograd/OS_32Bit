@@ -23,9 +23,9 @@ typedef struct task {
     uint32_t pid;               // Process ID
     enum State state;           // Process state
     uintptr_t pc;               // Program Counter
-    uintptr_t *sp;              // Stack Pointer
-    uintptr_t esp0;             // Stack Pointer
-    uintptr_t ss0;              // Stack Pointer
+    uintptr_t *sp;              // Task Stack Pointer
+    uintptr_t esp0;             // Kernel Stack Pointer
+    uintptr_t ss0;              // Kernel Stack Selector
     uint32_t flags;             // Status/Flags register
     struct task *next;          // Pointer to the next task in the list
 } task;
