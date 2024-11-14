@@ -42,7 +42,7 @@ void init_gdt() {
     memset(&tss, 0, sizeof(tss));
     tss.ss0  = 0x10;      // Kernel data segment selector
     tss.esp0 = (uint32_t)esp0_stack_top;  // Stack pointer for ring 0 transitions
-    tss.iomap_base = (uint16_t)sizeof(tss);  // Set IOMAP base to sizeof TSS menaing no IOMAP
+    tss.iomap_base = (uint16_t)sizeof(tss);  // Set IOMAP base to sizeof TSS meaning no IOMAP
 
     // Load the TSS
     __asm__ ("ltr %0" : : "r" ((uint16_t)0x28));  // TSS segment selector (5th entry, index 5*8=0x28)
