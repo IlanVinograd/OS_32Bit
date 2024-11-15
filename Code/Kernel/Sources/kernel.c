@@ -3,35 +3,34 @@
 volatile uint32_t count = 0;
 
 void task1_entry() {
-    setCursorPosition(0, 0);
+    setCursorPosition(15, 0);
     printf("Test1 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     for (int i = 1; i <= 10000; i++) {
         count++;
-        setCursorPosition(10, 0);
+        setCursorPosition(13, 0);
         printf("loop count -> %d", COLOR_BLINKING_YELLOW, count);
-
-        if (i % 1000 == 0) yield();
     }
-    setCursorPosition(4, 0);
+    setCursorPosition(16, 0);
     printf("Test1 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
-    yield();
 }
 
 void task2_entry() {
-    setCursorPosition(14, 5);
+    setCursorPosition(17, 0);
     printf("Test2 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     for (int i = 1; i <= 10000; i++) {
         count++;
-        setCursorPosition(11, 0);
+        setCursorPosition(13, 0);
         printf("loop count (Task2) -> %d", COLOR_BLINKING_YELLOW, count);
-
-        if (i % 1000 == 0) yield();
     }
-    setCursorPosition(16, 5);
+    setCursorPosition(18, 0);
     printf("Test2 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
-    yield();
+}
+
+void idle_task() {
+    setCursorPosition(1, 0);
+    printf("DONE\n",GREEN_ON_BLACK_SUCCESS); // Idle state
 }
 
 void _start(void) {
@@ -46,13 +45,15 @@ void _start(void) {
     pic_init();
     init_free_list();
 
-    
-
+    setCursorPosition(20, 0);
     create_task((uintptr_t)task1_entry);
     create_task((uintptr_t)task2_entry);
-    setCursorPosition(0,24);
+
+    setCursorPosition(18, 0);
     print_task_and_count();
-    init_scheduler();
-    printf("DONE\n",COLOR_BLACK_ON_WHITE);
+    pit_init(100);   // each 10ms will be interrupt.
+    __asm__("sti");  // Enable global interrupts.
+
+    idle_task();
     while (1) __asm__ ("hlt");  // Loop indefinitely
 }

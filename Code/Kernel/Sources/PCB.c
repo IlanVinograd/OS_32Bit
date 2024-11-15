@@ -33,7 +33,6 @@ task* create_task(uintptr_t task_entry_function) {
     return new_task;
 }
 
-
 void remove_task(task* task_terminate) {
     if (!current || !task_terminate) return;
 
@@ -67,7 +66,7 @@ void remove_task(task* task_terminate) {
 }
 
 void print_task_and_count() {
-    printf("Tasks now | %d |\n\n", COLOR_BLACK_ON_WHITE, nowTasks);
+    printf("Tasks now | %d |\n", COLOR_BLACK_ON_WHITE, nowTasks);
     task* temp = current;
 
     if (!current) {

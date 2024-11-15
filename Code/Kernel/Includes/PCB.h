@@ -15,13 +15,11 @@ enum State {
 };
 
 typedef struct task {
-    uint32_t pid;               // Process ID
-    enum State state;           // Process state
-    uintptr_t pc;               // Program Counter
-    uintptr_t sp;               // Stack Pointer
-    uint32_t registers[8];      // General-purpose registers
-    uint32_t flags;             // Status/Flags register
-    struct task *next;          // Pointer to the next task in the list
+    uint32_t pid;          // Process ID
+    uintptr_t sp;          // Stack Pointer
+    uintptr_t pc;          // Program Counter
+    uint32_t state;        // Task state (e.g., READY, RUNNING)
+    struct task* next;     // Pointer to the next task in the scheduler's list
 } task;
 
 extern task* current;
