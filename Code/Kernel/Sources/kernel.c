@@ -7,38 +7,54 @@ void task1_entry() {
     setCursorPosition(15, 0);
     printf("Test1 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
 
-    for (int i = 1; i <= 100000; i++) {
+    for (int i = 1; i <= 53000; i++) {
 //    for (int i = 1; i <= 10000000; i++) {
         count++;
         setCursorPosition(10, 0);
         printf("loop count 1 -> %d", COLOR_BLINKING_YELLOW, count);
 
-        if (i % 1000 == 0) yield();
+        if (i % 100 == 0) yield();
     }
-    setCursorPosition(16, 0);
+    setCursorPosition(15, 30);
     printf("Test1 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
+    yield();
+}
+
+void task3_entry() {
+    setCursorPosition(17, 0);
+    printf("Test3 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
+
+    for (int i = 1; i <= 43000; i++) {
+//    for (int i = 1; i <= 10000000; i++) {
+        count++;
+        setCursorPosition(12, 0);
+        printf("loop count 3 -> %d", COLOR_BLINKING_YELLOW, count);
+
+        if (i % 100 == 0) yield();
+    }
+    setCursorPosition(17, 30);
+    printf("Test1 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
+    set_task_state(current, TERMINATED);
+    yield();
 }
 
 void task2_entry() {
-    setCursorPosition(17, 0);
+    setCursorPosition(16, 0);
     printf("Test2 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
 //    for (int i = 1; i <= 10000000; i++) {
-    for (int i = 1; i <= 100000; i++) {
+    for (int i = 1; i <= 10000; i++) {
         count++;
         setCursorPosition(11, 0);
         printf("loop count 2 -> %d", COLOR_BLINKING_YELLOW, count);
 
-        if (i % 1000 == 0) yield();
+        if (i % 100 == 0) yield();
     }
-    setCursorPosition(18, 0);
+
+    setCursorPosition(16, 30);
     printf("Test2 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
-}
-
-void idle_task() {
-    setCursorPosition(1, 0);
-    printf("DONE\n",GREEN_ON_BLACK_SUCCESS); // Idle state
+    yield();
 }
 
 void _start(void) {
@@ -63,6 +79,7 @@ void _start(void) {
     // Create sample work tasks
     create_task((uintptr_t)task1_entry);
     create_task((uintptr_t)task2_entry);
+    create_task((uintptr_t)task3_entry);
 
     setCursorPosition(0,24);
     print_task_and_count();

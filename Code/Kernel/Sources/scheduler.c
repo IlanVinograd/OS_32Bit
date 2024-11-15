@@ -1,6 +1,5 @@
 #include "../Includes/scheduler.h"
 
-
 extern void switch_to_task(task *next_task);
 
 extern task* current;
@@ -40,6 +39,7 @@ void init_scheduler(void) {
         current->flags = 0;
         current->pc = 0;
         current->sp = 0;
+        current->fsp = current->sp;
         current->esp0 = 0;
         current->ss0 = 0;
         current->next = current;
@@ -54,4 +54,3 @@ void init_scheduler(void) {
 void yield (void) {
     schedule();
 }
-

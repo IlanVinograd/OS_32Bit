@@ -5,7 +5,7 @@
 #include <vga.h>
 
 #define MAX_PIDs 4294967295U
-#define STACK_SIZE 4096
+#define STACK_SIZE 4097
 
 enum State {
   READY = 0,
@@ -19,6 +19,7 @@ typedef struct task {
     enum State state;           // Process state
     uintptr_t pc;               // Program Counter
     uintptr_t *sp;              // Task Stack Pointer
+    uintptr_t *fsp;              // Stack Pointer for free();
     uintptr_t esp0;             // Kernel Stack Pointer
     uintptr_t ss0;              // Kernel Stack Selector
     uint32_t flags;             // Status/Flags register
