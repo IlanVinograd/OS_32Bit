@@ -1,13 +1,12 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H
 
-#include <PCB.h>
-#include <vga.h>
-#include <gdt.h>
 #include <stdint.h>
-#include <PIT.h>
+#include <PCB.h>
 
-//void switch_context(task* current_task, task* next_task);
+struct task;
+typedef struct task task;
+
 void schedule();
 void init_scheduler();
 void yield();

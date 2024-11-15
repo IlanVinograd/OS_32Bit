@@ -4,8 +4,9 @@
 volatile uint32_t count = 0;
 
 void task1_entry() {
-    setCursorPosition(0, 0);
+    setCursorPosition(15, 0);
     printf("Test1 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
+
     for (int i = 1; i <= 100000; i++) {
 //    for (int i = 1; i <= 10000000; i++) {
         count++;
@@ -14,14 +15,13 @@ void task1_entry() {
 
         if (i % 1000 == 0) yield();
     }
-    setCursorPosition(4, 0);
+    setCursorPosition(16, 0);
     printf("Test1 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
-    yield();
 }
 
 void task2_entry() {
-    setCursorPosition(1, 0);
+    setCursorPosition(17, 0);
     printf("Test2 Start - %d\n", GREEN_ON_BLACK_SUCCESS, count);
 //    for (int i = 1; i <= 10000000; i++) {
     for (int i = 1; i <= 100000; i++) {
@@ -31,10 +31,14 @@ void task2_entry() {
 
         if (i % 1000 == 0) yield();
     }
-    setCursorPosition(5, 0);
+    setCursorPosition(18, 0);
     printf("Test2 Finished - %d\n", GREEN_ON_BLACK_SUCCESS, count);
     set_task_state(current, TERMINATED);
-    yield();
+}
+
+void idle_task() {
+    setCursorPosition(1, 0);
+    printf("DONE\n",GREEN_ON_BLACK_SUCCESS); // Idle state
 }
 
 void _start(void) {
@@ -49,6 +53,7 @@ void _start(void) {
     pic_init();
     init_free_list();
     init_scheduler();
+
 
     // Enable global interrupts
     // IRQ0's handler DOES NOT do task switching in

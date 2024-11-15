@@ -7,7 +7,6 @@
 #include <idt.h>
 #include <PIC.h>
 #include <scheduler.h>
-#include <PCB.h>
 
 #define PIT_CHANNEL0 0x40
 #define PIT_COMMAND  0x43

@@ -2,15 +2,10 @@
 #define _PCB_H
 
 #include <stdint.h>
-#include <scheduler.h>
-#include <PIT.h>
-#include <memory_manager.h>
 #include <vga.h>
 
 #define MAX_PIDs 4294967295U
 #define STACK_SIZE 4096
-
-
 
 enum State {
   READY = 0,
@@ -39,8 +34,5 @@ void print_task_and_count();
 uint32_t new_pid();
 void free_task_resources(task* terminated_task);
 void set_task_state(task* task, enum State state);
-bool_t is_valid_address(void* address);
-
-
 
 #endif

@@ -25,5 +25,6 @@
 #include <gdt.h>
 
 extern uint32_t pagesAllocated;
+extern uintptr_t idle_stack_pointer; 
 
 #endif

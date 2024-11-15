@@ -31,6 +31,14 @@ IDT_C_OBJ := $(OBJECTS)/idt_handler.o
 IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
 TASK_ASM_OBJ := $(OBJECTS)/tasksw.o
 
+SWITCH_SRC := $(SOURCES)/switch.asm
+SWITCH_OBJ := $(OBJECTS)/switch.o
+
+# Rule to assemble switch.asm
+$(SWITCH_OBJ): $(SWITCH_SRC)
+	@echo "Assembling $<..."
+	$(NASM) -f elf32 $< -o $@
+	
 # Output binaries and objects
 STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
 STAGE2_BIN := $(PROJECT_ROOT)/Boot/Stage2/stage2.bin
@@ -80,9 +88,11 @@ $(TASK_ASM_OBJ): $(TASK_ASM_SRC)
 	$(NASM) -f elf32 $(TASK_ASM_SRC) -o $(TASK_ASM_OBJ)
 
 # Linking Kernel to an ELF executable..."
+
 $(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ) $(LINKER_SCRIPT)
 	@echo "Linking Kernel to an ELF executable..."
 	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ)
+
 
 # Creating a binary version of the Kernel ELF file..."
 $(KERNEL_BIN): $(KERNEL_ELF)

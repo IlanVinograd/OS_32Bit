@@ -1,10 +1,14 @@
 #include "../Includes/scheduler.h"
 
+
 extern void switch_to_task(task *next_task);
+
 extern task* current;
 
 void schedule() {
-    if (!current) return;
+    if (!current) {
+        return;
+    }
 
     // Find the next task that is ready to run
     task* next_task = current->next;
@@ -41,6 +45,7 @@ void init_scheduler(void) {
         current->next = current;
         nowTasks++;
     }
+
 
     pit_init(1);  // Set the PIT to 100Hz, or every 10ms
 }

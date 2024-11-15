@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <idt.h>
 #include <PIT.h>
+#include <scheduler.h>
 #include <io.h>
 #include <memory_manager.h>
 
