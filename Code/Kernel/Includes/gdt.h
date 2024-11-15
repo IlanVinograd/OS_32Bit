@@ -26,9 +26,7 @@ struct tss_entry {
     uint32_t esp0;          // Stack pointer for ring 0
     uint32_t ss0;           // Stack segment for ring 0
     // Additional fields can be zero
-    uint32_t reserved[22];  // Reserved fields to make the structure size correct
-    uint16_t reserved1;     // Reserved
-    uint16_t iomap_base;    // IOMAP base
+    uint32_t reserved[23];  // Reserved fields to make the structure size correct
 } __attribute__((packed));
 
 // Externally accessible functions

@@ -10,20 +10,7 @@ task* create_task(uintptr_t task_entry_function) {
         new_task->pid = new_pid();
         new_task->state = READY;
         new_task->pc = task_entry_function;
-        new_task->sp = (uintptr_t *)malloc(STACK_SIZE) + STACK_SIZE;
-
-//      This would apply to a user task
-//      new_task->esp0 = (uintptr_t)malloc(STACK_SIZE) + STACK_SIZE;
-//      new_task->ss0 = 0x10;
-
-        // Initialize task stack. These entries are reverse to the order
-        // that switch_to_task pops them when it returns.
-        *(--new_task->sp) = task_entry_function;   // EIP
-        *(--new_task->sp) = 0x202;                 // Eflags - IF=1, BIT1=1 (reserved)
-        *(--new_task->sp) = 0;                     // EBX
-        *(--new_task->sp) = 0;                     // ESI
-        *(--new_task->sp) = 0;                     // EDI
-        *(--new_task->sp) = 0;                     // EBP
+        new_task->sp = ((uintptr_t)malloc(STACK_SIZE) + STACK_SIZE) & ~0xF;
 
         setCursorPosition(22,0);
         printf("Creating Task PID: %d | PC: %p | SP: %p | State: %d\n", COLOR_BLACK_ON_WHITE,

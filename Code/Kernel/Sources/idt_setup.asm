@@ -35,6 +35,7 @@ isr0:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
+    jmp $              ; Infinite loop to halt system
 
 ; ISR for Invalid Opcode Exception (ISR6)
 isr6:
@@ -46,6 +47,7 @@ isr6:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
+    jmp $              ; Infinite loop to halt system
 
 ; ISR for General Protection Fault Exception (ISR13)
 isr13:
@@ -57,6 +59,7 @@ isr13:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
+    jmp $              ; Infinite loop to halt system
 
 ; ISR for Page Fault Exception (ISR14)
 isr14:
@@ -67,13 +70,15 @@ isr14:
 
     popa               ; Restore registers
 
-    add esp, 4         ; Remove error code
-    iret
+    hlt                ; Halt the CPU to stop further execution
+    jmp $              ; Infinite loop to halt system
 
 ; PIT IRQ0 - Timer
 irq0:
     pusha               ; Save all registers
     call pit_handler    ; Call the PIT handler to increment tick_count
+    mov al, 0x20        ; Send EOI to Master PIC
+    out 0x20, al
     popa                ; Restore registers
     iret
 
@@ -81,5 +86,7 @@ irq0:
 irq1:
     pusha               ; Save all registers
     call irq1_handler   ; Call the C handler function for IRQ1
+    mov al, 0x20        ; Send EOI to Master PIC
+    out 0x20, al
     popa                ; Restore registers
     iret

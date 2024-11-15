@@ -1,6 +1,4 @@
-//#include "../includes/pic.h"
-#include <stdint.h>
-#include "io.h"
+#include "../Includes/pic.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21
@@ -9,8 +7,8 @@
 #define PIC_EOI 0x20
 
 void pic_init(void) {
-//    uint8_t mask1 = inPort(PIC1_DATA);
-//    uint8_t mask2 = inPort(PIC2_DATA);
+    uint8_t mask1 = inPort(PIC1_DATA);
+    uint8_t mask2 = inPort(PIC2_DATA);
 
     outPort(PIC1_COMMAND, 0x11);
     outPort(PIC2_COMMAND, 0x11);
@@ -24,9 +22,8 @@ void pic_init(void) {
     outPort(PIC1_DATA, 0x01);
     outPort(PIC2_DATA, 0x01);
 
-    // Enable keyboard and PIT timer only
-    outPort(PIC1_DATA, 0xFC);
-    outPort(PIC2_DATA, 0xFF);
+    outPort(PIC1_DATA, mask1 & 0xFC);
+    outPort(PIC2_DATA, mask2);
 }
 
 void pic_send_eoi(uint8_t irq) {

@@ -14,10 +14,10 @@ void pit_handler(void) { // each 10ms will be interrupt.
     __asm__("cli"); // CLI to avoid recursive.
     
     tick_count++;
+    setCursorPosition(0, 0);
+    printf("Bitmap state: Pages ( %d / %d ) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, tick_count);
 
-//    setCursorPosition(23, 0);
-//    printf("Bitmap state: Pages ( %d / %d ) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, tick_count);
-//    schedule();
+    schedule();
 
     pic_send_eoi(0);
     __asm__("sti");
