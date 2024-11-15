@@ -24,10 +24,12 @@ ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 # IDT source files
 IDT_C_SRC := $(SOURCES)/idt.o
 IDT_ASM_SRC := $(SOURCES)/idt_setup.asm
+TASK_ASM_SRC := $(SOURCES)/tasksw.asm
 
 # Object files for IDT
 IDT_C_OBJ := $(OBJECTS)/idt_handler.o
 IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
+TASK_ASM_OBJ := $(OBJECTS)/tasksw.o
 
 SWITCH_SRC := $(SOURCES)/switch.asm
 SWITCH_OBJ := $(OBJECTS)/switch.o
@@ -45,10 +47,10 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3 -fomit-frame-pointer
+CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3 -fomit-frame-pointer -g
 QEMU_IMG := qemu-img
 DD := dd
-NASM := nasm
+NASM := nasm -g
 
 # Always clean before building
 output: clean $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(IMG)
@@ -80,10 +82,17 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC)
 	@echo "Assembling IDT ASM code..."
 	$(NASM) -f elf32 $(IDT_ASM_SRC) -o $(IDT_ASM_OBJ)
 
+# Assemble Task ASM code
+$(TASK_ASM_OBJ): $(TASK_ASM_SRC)
+	@echo "Assembling IDT ASM code..."
+	$(NASM) -f elf32 $(TASK_ASM_SRC) -o $(TASK_ASM_OBJ)
+
 # Linking Kernel to an ELF executable..."
-$(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(SWITCH_OBJ) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
+
+$(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ) $(LINKER_SCRIPT)
 	@echo "Linking Kernel to an ELF executable..."
-	i686-elf-ld -o $@ -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(SWITCH_OBJ) $(IDT_ASM_OBJ)
+	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ)
+
 
 # Creating a binary version of the Kernel ELF file..."
 $(KERNEL_BIN): $(KERNEL_ELF)
