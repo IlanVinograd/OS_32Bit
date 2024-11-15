@@ -1,5 +1,11 @@
 #include "../Includes/test.h"
 
+void delay(uint32_t count) {
+    while (count--) {
+        __asm__ volatile ("nop");
+    }
+}
+
 void test_bitmap() {
     // Edge Case 1: Allocate the first page
     printf("Test 1: Allocating the first page (0)...\n", COLOR_BLACK_ON_WHITE);
@@ -107,254 +113,121 @@ void test_isr14(){
     (void)value;  // Avoid compiler warning
 }
 
-void test_alloc_medium(){
-    // Slightly harder tests //
-int i = 0;
-
-// Loop with more iterations and slightly larger allocations
-while (i < 40) {  // Increased the number of iterations slightly
+void test_malloc_fragmentation_large_scale() {
+    setCursorPosition(23, 0);
+    printf("Running large-scale fragmentation stress test...\n", COLOR_BLINKING_YELLOW);
     setCursorPosition(0, 0);
-    
-    // Allocate small block
-    void* ptr1 = malloc(75);  // Slightly larger allocation
+
+    // Step 1: Allocate 900 pages for large blocks (above 4097 bytes)
+    setCursorPosition(22, 0);
+    printf("Subtest 1: Allocating 900 large blocks (above 4097 bytes)...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
+    void* large_blocks[900];
 
-    // Allocate small block well below page size
-    void* ptr2 = malloc(1200);  // Increased size but still small
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free and reallocate memory in different order
-    free(ptr1);
-    void* ptr3 = malloc(800);  // Moderate reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free small block
-    free(ptr2);
-    void* ptr4 = malloc(1200);  // Similar size as ptr2
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free everything
-    free(ptr3);
-    free(ptr4);
-
-    i++;
+    for (int i = 0; i < 300; i++) {
+        large_blocks[i] = malloc(4097 + (i * 16));  // Large blocks of increasing sizes
+        if (large_blocks[i] == NULL) {
+            printf("Error: Allocation failed for large block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
     }
 
-// Boundary testing with slightly more iterations and larger blocks
-for (int j = 0; j < 20; j++) {  // Increased the iterations a bit
-    void* ptr1 = malloc(1024);  // One-quarter of a page
+    // Step 2: Free every fifth large block to create heavy fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 2: Freeing every fifth large block to create fragmentation...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
-    
-    void* ptr2 = malloc(50);  // Small allocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    void* ptr3 = malloc(512);  // Moderate block size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free them in specific order
-    free(ptr2);
-    free(ptr1);
-    free(ptr3);
-
-    void* ptr4 = malloc(1800); // Moderate block, below half a page
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr4);
+    for (int i = 0; i < 300; i += 5) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
     }
 
-// Interleaved malloc/free with small and moderate sizes
-for (int k = 0; k < 35; k++) {  // Increased complexity slightly
-    void* ptr1 = malloc(150);    // Small allocation
-    void* ptr2 = malloc(400);    // Moderate size
-    void* ptr3 = malloc(1000);   // Larger but still below a page
+    // Step 3: Allocate 90 pages for smaller blocks (under 4096 bytes)
+    setCursorPosition(22, 0);
+    printf("Subtest 3: Allocating 90 smaller blocks (under 4096 bytes)...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
+    void* small_blocks[90];
 
-    free(ptr2);  // Free in the middle
-    void* ptr4 = malloc(600);   // Slightly larger reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr1);
-    free(ptr3);
-    free(ptr4);
-    setCursorPosition(0, 0);
-    print_bitmap();
-    }   
-}
-
-void test_alloc_hard(){
-    // Harder tests //
-int i = 0;
-
-// Loop with more iterations and larger allocations
-while (i < 50) {  // Increased the number of iterations slightly more
-    setCursorPosition(0, 0);
-    
-    // Allocate small block
-    void* ptr1 = malloc(100);  // Slightly larger allocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Allocate small block well below page size
-    void* ptr2 = malloc(1500);  // Increased size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free and reallocate memory in different order
-    free(ptr1);
-    void* ptr3 = malloc(1000);  // Larger reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free small block
-    free(ptr2);
-    void* ptr4 = malloc(2000);  // Larger block size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free everything
-    free(ptr3);
-    free(ptr4);
-
-    i++;
+    for (int i = 0; i < 40; i++) {
+        small_blocks[i] = malloc(1024 + (i * 32));  // Small blocks of increasing sizes
+        if (small_blocks[i] == NULL) {
+            printf("Warning: Allocation failed for small block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
     }
 
-// Boundary testing with larger blocks and moderate iterations
-for (int j = 0; j < 30; j++) {  // Increased the iterations and size
-    void* ptr1 = malloc(1500);  // Moderate allocation size
+    // Step 4: Free every third small block to introduce more fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 4: Freeing every third small block...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
-    
-    void* ptr2 = malloc(75);  // Small allocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    void* ptr3 = malloc(800);  // Moderate block size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free them in specific order
-    free(ptr2);
-    free(ptr1);
-    free(ptr3);
-
-    void* ptr4 = malloc(2500); // Slightly larger block
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr4);
+    for (int i = 0; i < 40; i += 3) {
+        if (small_blocks[i] != NULL) {
+            free(small_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
     }
 
-// Interleaved malloc/free with larger sizes
-for (int k = 0; k < 40; k++) {  // Slightly increased iterations
-    void* ptr1 = malloc(200);    // Small allocation
-    void* ptr2 = malloc(600);    // Moderate size
-    void* ptr3 = malloc(1500);   // Larger block below full page
+    // Step 5: Allocate new large blocks in fragmented memory
+    setCursorPosition(22, 0);
+    printf("Subtest 5: Allocating new large blocks in fragmented memory...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr2);  // Free in the middle
-    void* ptr4 = malloc(1000);   // Larger reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr1);
-    free(ptr3);
-    free(ptr4);
-    setCursorPosition(0, 0);
-    print_bitmap();
-    }
-}
-
-void test_alloc_even_hard(){
-    // Harder tests //
-int i = 0;
-
-// Loop with increased iterations and larger allocations
-while (i < 70) {  // Increased the number of iterations
-    setCursorPosition(0, 0);
-    
-    // Allocate moderate block
-    void* ptr1 = malloc(200);  // Slightly larger allocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Allocate larger block well below page size
-    void* ptr2 = malloc(2200);  // Increased size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free and reallocate memory in different order
-    free(ptr1);
-    void* ptr3 = malloc(1500);  // Larger reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free larger block
-    free(ptr2);
-    void* ptr4 = malloc(3000);  // Large block size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free everything
-    free(ptr3);
-    free(ptr4);
-
-    i++;
+    for (int i = 0; i < 100; i++) {
+        large_blocks[i] = malloc(8192 + (i * 32));  // Allocate new large blocks
+        if (large_blocks[i] == NULL) {
+            printf("Error: Allocation failed for new large block %d\n", RED_ON_BLACK_WARNING, i);
+            break;
+        }
+        print_bitmap();
+        delay(20000000);  // Delay to observe the change
+        clearScreen();
+        setCursorPosition(0, 0);
     }
 
-// Boundary testing with larger blocks and more iterations
-for (int j = 0; j < 50; j++) {  // Increased the iterations more
-    void* ptr1 = malloc(2500);  // Larger allocation size
+    // Step 6: Free every sixth large block to create more fragmentation
+    setCursorPosition(22, 0);
+    printf("Subtest 6: Freeing every sixth large block...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
-    
-    void* ptr2 = malloc(150);  // Small allocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    void* ptr3 = malloc(1200);  // Moderate block size
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    // Free them in specific order
-    free(ptr2);
-    free(ptr1);
-    free(ptr3);
-
-    void* ptr4 = malloc(3500); // Larger block
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr4);
+    for (int i = 0; i < 300; i += 6) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
     }
 
-// Interleaved malloc/free with larger sizes
-for (int k = 0; k < 60; k++) {  // Further increased iterations
-    void* ptr1 = malloc(300);    // Small allocation
-    void* ptr2 = malloc(1000);   // Moderate size
-    void* ptr3 = malloc(2200);   // Larger block, still below a page
+    // Step 7: Final cleanup of all remaining blocks
+    setCursorPosition(22, 0);
+    printf("Subtest 7: Final cleanup of all blocks...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr2);  // Free in the middle
-    void* ptr4 = malloc(1600);   // Larger reallocation
-    setCursorPosition(0, 0);
-    print_bitmap();
-
-    free(ptr1);
-    free(ptr3);
-    free(ptr4);
-    setCursorPosition(0, 0);
-    print_bitmap();
+    for (int i = 0; i < 110; i++) {
+        if (large_blocks[i] != NULL) {
+            free(large_blocks[i]);
+            print_bitmap();
+            delay(20000000);  // Delay to observe the change
+            clearScreen();
+            setCursorPosition(0, 0);
+        }
     }
+
+    print_bitmap();
+    setCursorPosition(23, 0);
+    printf("Large-scale fragmentation stress test completed.\n", GREEN_ON_BLACK_SUCCESS);
+    setCursorPosition(0, 0);
 }

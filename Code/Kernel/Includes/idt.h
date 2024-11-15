@@ -25,4 +25,7 @@ void isr6_handler(void);
 void isr13_handler(void);
 void isr14_handler(void);
 
+void irq0_handler(void);
+void irq1_handler(void);
+
 #endif

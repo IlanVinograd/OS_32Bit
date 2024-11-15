@@ -1,100 +1,170 @@
 #include "../Includes/memory_manager.h"
 
+// Pointers for managing the heap's free list
+static FreeBlock* current_free_block = NULL;
+static void* alloc_list_start = NULL;
+static void* alloc_list_end = NULL;
+
+uint32_t pagesAllocated = 0;
+
 void* page_alloc(uint32_t num_pages) {
     void* allocated_address = find_free_pages(num_pages);
-
     if (allocated_address == NULL) {
-        printf("Warning: page_alloc failed to allocate memory! [Page Allocation Error Code: %d]\n", RED_ON_BLACK_WARNING, allocated_address);
+        printf("Warning: page_alloc failed to allocate memory! [Page Allocation Error Code: %d]\n", RED_ON_BLACK_WARNING);
         return NULL;
     }
-
-    // Adjust the allocated address with the KERNEL_HIGH_BASE
+    pagesAllocated += num_pages;
     return (void*)((uintptr_t)allocated_address + KERNEL_HIGH_BASE);
 }
 
-void* malloc(uint32_t size) {
-    // Handle small allocations using buddy system
-    if (size > 0 && size <= PAGE_SIZE) {
-        // Check if there is an available binary tree for an existing page
-        void* allocated_block = find_free_block_in_binary_tree(root, size);
-        
-        if (allocated_block != NULL) {
-            // If a suitable block was found, return it
-            return allocated_block;
-        } else {
-            // No suitable block found, allocate a new page
-            void* new_page = page_alloc(1);
-            
-            if (new_page == NULL) {
-                // If page allocation failed, return NULL
-                return NULL;
-            }
+void free_large_pages(void* block, uint32_t size) {
+    uintptr_t address = (uintptr_t)block - KERNEL_HIGH_BASE;
+    uint32_t start_page = (address - MEM_ALLOC_START) / PAGE_SIZE;
+    uint32_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 
-            // Initialize a binary tree for the new page and allocate from it
-            init_binary_tree_for_page(new_page);
-            return allocate_block_from_page(root, size);
-        }
-    } 
-    // Handle large allocations (size > PAGE_SIZE)
-    else if (size > PAGE_SIZE) {
-        // Calculate how many pages are needed
+    for (uint32_t i = 0; i < num_pages; i++) {
+        mark_page_as_free(start_page + i);
+        pagesAllocated--;
+    }
+}
+
+void init_free_list() {
+    alloc_list_start = page_alloc(PAGES_FOR_HEAP);  // Allocate 4 pages for the heap (4096 * 4 bytes)
+    if (alloc_list_start == NULL) {
+        printf("Error: Could not allocate initial pages for the alloc list.\n", RED_ON_BLACK_WARNING);
+        return;
+    }
+
+    alloc_list_end = (void*)((uintptr_t)alloc_list_start + (PAGE_SIZE * PAGES_FOR_HEAP));
+
+    current_free_block = (FreeBlock*)alloc_list_start;
+    current_free_block->size = PAGE_SIZE * PAGES_FOR_HEAP;
+    current_free_block->address = (void*)((uintptr_t)alloc_list_start + sizeof(FreeBlock));
+    current_free_block->next = NULL;
+    current_free_block->isFree = true;
+}
+
+void* malloc(uint32_t size) {
+    if (size == 0) return NULL;
+
+    if (size > 4096) {
         uint32_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-        
-        // Allocate the necessary pages
-        void* large_alloc = page_alloc(num_pages);
-        
-        if (large_alloc == NULL) {
-            // If page allocation failed, return NULL
+        void* new_address = page_alloc(num_pages);
+        if (new_address == NULL) {
+            printf("Error: Could not allocate new pages for malloc.\n", RED_ON_BLACK_WARNING);
             return NULL;
         }
 
-        return large_alloc;
-    }
+        // Store the number of pages in the header at the start of the allocated memory
+        AllocationHeader* header = (AllocationHeader*)new_address;
+        header->num_pages = num_pages;
 
-    return NULL;  // Invalid size request
-}
+        // Return the memory address after the header
+        return (void*)((uintptr_t)new_address + sizeof(AllocationHeader));
+    } else {
+        // Allocate from the free list for smaller sizes
+        FreeBlock* temp = current_free_block;
+        FreeBlock* prev = NULL;
 
-// Helper function to mark pages as free in the bitmap
-void free_large_pages(void* block, uint32_t size) {
-    uintptr_t address = (uintptr_t)block - KERNEL_HIGH_BASE;  // Adjust to physical address
-    uint32_t start_page = (address - MEM_ALLOC_START) / PAGE_SIZE;
-    uint32_t num_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;  // Calculate the number of pages
+        while (temp != NULL) {
+            if (temp->isFree && temp->size >= size) {
+                // Split the block if necessary
+                if (temp->size > size + sizeof(FreeBlock)) {
+                    FreeBlock* new_block = (FreeBlock*)((uintptr_t)temp + sizeof(FreeBlock) + size);
+                    new_block->size = temp->size - size - sizeof(FreeBlock);
+                    new_block->address = (void*)((uintptr_t)new_block + sizeof(FreeBlock));
+                    new_block->isFree = true;
+                    new_block->next = temp->next;
 
-    // Mark each page as free in the bitmap
-    for (uint32_t i = 0; i < num_pages; i++) {
-        mark_page_as_free(start_page + i);
+                    temp->size = size;
+                    temp->next = new_block;
+                }
+
+                temp->isFree = false;
+                return temp->address;
+            }
+            prev = temp;
+            temp = temp->next;
+        }
+
+        // If no suitable block was found
+        printf("Error: No suitable block found in the heap for malloc.\n", RED_ON_BLACK_WARNING);
+        return NULL;
     }
 }
 
 void free(void* block) {
-    // Check if the block is within the page allocation range
-    if ((uintptr_t)block >= KERNEL_HIGH_BASE + MEM_ALLOC_START && (uintptr_t)block <= KERNEL_HIGH_BASE + MEM_ALLOC_END) {
-        // We are dealing with regular page-based allocations
-        uintptr_t block_address = (uintptr_t)block - KERNEL_HIGH_BASE;  // Get physical address
+    if (block == NULL) return;
 
-        // Determine if this is a large allocation (more than one page)
-        if ((uintptr_t)block_address + PAGE_SIZE <= MEM_ALLOC_END) {
-            // This is a large block (page-allocated memory), so we free the pages
-            free_large_pages(block, PAGE_SIZE);
-            return;
+    uintptr_t block_address = (uintptr_t)block;
+
+    // Check if the block is part of the heap (less than 4096 bytes)
+    if (block_address >= (uintptr_t)alloc_list_start && block_address < (uintptr_t)alloc_list_end) {
+        FreeBlock* temp = current_free_block;
+        while (temp != NULL) {
+            if (temp->address == block) {
+                temp->isFree = true;
+                // Attempt to merge with adjacent free blocks
+                if (temp->next != NULL && temp->next->isFree) {
+                    temp->size += temp->next->size + sizeof(FreeBlock);
+                    temp->next = temp->next->next;
+                }
+                break;
+            }
+            temp = temp->next;
+        }
+    } else {
+        // Handle larger allocations by reading the metadata header
+        AllocationHeader* header = (AllocationHeader*)((uintptr_t)block - sizeof(AllocationHeader));
+        uint32_t num_pages = header->num_pages;
+
+        // Calculate the starting physical address to free
+        uintptr_t start_address = (uintptr_t)header - KERNEL_HIGH_BASE - MEM_ALLOC_START;
+
+        // Free the pages in the bitmap
+        pagesAllocated -= num_pages;
+
+        for (uint32_t i = 0; i < num_pages; i++) {
+            mark_page_as_free((start_address / PAGE_SIZE) + i);
         }
     }
+}
 
-    // Otherwise, it's a block allocated through the binary tree for < 4096 bytes
-    binary_tree_node_t* node = root;
+void* calloc(uint32_t num, uint32_t size) {
+    void* ptr = malloc(num * size);
+    if (ptr != NULL) memset(ptr, 0, num * size);
+    return ptr;
+}
 
-    while (node != NULL) {
-        void* real_address = (void*)((uintptr_t)node->address + KERNEL_HIGH_BASE);
-        
-        if (real_address == block) {
-            node->is_free = 1;
-            break;
-        }
-        
-        if ((uintptr_t)block < (uintptr_t)real_address + node->size / 2) {
-            node = node->left;
-        } else {
-            node = node->right;
-        }
+void* realloc(void* ptr, uint32_t new_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
     }
+    
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    memcpy(new_ptr, ptr, new_size);
+    free(ptr);
+
+    return new_ptr;
+}
+
+void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    uint32_t copy_size = (ptr_size < new_size) ? ptr_size : new_size;
+    memcpy(new_ptr, ptr, copy_size);
+    
+    free(ptr);
+    return new_ptr;
 }

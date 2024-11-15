@@ -3,7 +3,7 @@
 uint32_t bitmap[BITMAP_SIZE];
 
 void print_bitmap(){
-    printf("Bitmap state:\n", COLOR_BLACK_ON_WHITE);
+    printf("Bitmap state: Pages ( %d / %d ) \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES);
 
     for(int page_number = 0; page_number < NUM_PAGES; page_number++){
         uint32_t index = page_number / 32;
@@ -110,6 +110,6 @@ void mark_page_as_free(uint32_t page_number) {
 
     uint32_t index = page_number / 32;
     uint32_t bit = page_number % 32;
-
+    
     bitmap[index] &= ~(1 << bit);  // Set the bit to 0 (mark as free)
 }
