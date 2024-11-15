@@ -14,6 +14,7 @@
 #define BITMAP_SIZE           ((NUM_PAGES + 31) / 32) // Bitmap size in uint32_t (32 bits per uint32_t)
 
 extern uint32_t bitmap[BITMAP_SIZE];
+extern uint32_t pagesAllocated;
 
 void print_bitmap();
 void  init_bitmap();

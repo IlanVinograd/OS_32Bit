@@ -1,9 +1,11 @@
 #include "../Includes/memory_manager.h"
 
 // Pointers for managing the heap's free list
-static FreeBlock* current = NULL;
+static FreeBlock* current_free_block = NULL;
 static void* alloc_list_start = NULL;
 static void* alloc_list_end = NULL;
+
+uint32_t pagesAllocated = 0;
 
 void* page_alloc(uint32_t num_pages) {
     void* allocated_address = find_free_pages(num_pages);
@@ -11,6 +13,7 @@ void* page_alloc(uint32_t num_pages) {
         printf("Warning: page_alloc failed to allocate memory! [Page Allocation Error Code: %d]\n", RED_ON_BLACK_WARNING);
         return NULL;
     }
+    pagesAllocated += num_pages;
     return (void*)((uintptr_t)allocated_address + KERNEL_HIGH_BASE);
 }
 
@@ -21,6 +24,7 @@ void free_large_pages(void* block, uint32_t size) {
 
     for (uint32_t i = 0; i < num_pages; i++) {
         mark_page_as_free(start_page + i);
+        pagesAllocated--;
     }
 }
 
@@ -33,11 +37,11 @@ void init_free_list() {
 
     alloc_list_end = (void*)((uintptr_t)alloc_list_start + (PAGE_SIZE * PAGES_FOR_HEAP));
 
-    current = (FreeBlock*)alloc_list_start;
-    current->size = PAGE_SIZE * PAGES_FOR_HEAP;
-    current->address = (void*)((uintptr_t)alloc_list_start + sizeof(FreeBlock));
-    current->next = NULL;
-    current->isFree = true;
+    current_free_block = (FreeBlock*)alloc_list_start;
+    current_free_block->size = PAGE_SIZE * PAGES_FOR_HEAP;
+    current_free_block->address = (void*)((uintptr_t)alloc_list_start + sizeof(FreeBlock));
+    current_free_block->next = NULL;
+    current_free_block->isFree = true;
 }
 
 void* malloc(uint32_t size) {
@@ -59,7 +63,7 @@ void* malloc(uint32_t size) {
         return (void*)((uintptr_t)new_address + sizeof(AllocationHeader));
     } else {
         // Allocate from the free list for smaller sizes
-        FreeBlock* temp = current;
+        FreeBlock* temp = current_free_block;
         FreeBlock* prev = NULL;
 
         while (temp != NULL) {
@@ -96,7 +100,7 @@ void free(void* block) {
 
     // Check if the block is part of the heap (less than 4096 bytes)
     if (block_address >= (uintptr_t)alloc_list_start && block_address < (uintptr_t)alloc_list_end) {
-        FreeBlock* temp = current;
+        FreeBlock* temp = current_free_block;
         while (temp != NULL) {
             if (temp->address == block) {
                 temp->isFree = true;
@@ -116,9 +120,51 @@ void free(void* block) {
 
         // Calculate the starting physical address to free
         uintptr_t start_address = (uintptr_t)header - KERNEL_HIGH_BASE - MEM_ALLOC_START;
+
         // Free the pages in the bitmap
+        pagesAllocated -= num_pages;
+
         for (uint32_t i = 0; i < num_pages; i++) {
             mark_page_as_free((start_address / PAGE_SIZE) + i);
         }
     }
+}
+
+void* calloc(uint32_t num, uint32_t size) {
+    void* ptr = malloc(num * size);
+    if (ptr != NULL) memset(ptr, 0, num * size);
+    return ptr;
+}
+
+void* realloc(void* ptr, uint32_t new_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
+    }
+    
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    memcpy(new_ptr, ptr, new_size);
+    free(ptr);
+
+    return new_ptr;
+}
+
+void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) {
+        free(ptr);
+        return NULL;
+    }
+
+    void* new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    uint32_t copy_size = (ptr_size < new_size) ? ptr_size : new_size;
+    memcpy(new_ptr, ptr, copy_size);
+    
+    free(ptr);
+    return new_ptr;
 }

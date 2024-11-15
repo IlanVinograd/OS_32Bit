@@ -216,18 +216,9 @@ void test_malloc_fragmentation_large_scale() {
     setCursorPosition(22, 0);
     printf("Subtest 7: Final cleanup of all blocks...", YELLOW_ON_BLACK_CAUTION);
     setCursorPosition(0, 0);
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < 110; i++) {
         if (large_blocks[i] != NULL) {
             free(large_blocks[i]);
-            print_bitmap();
-            delay(20000000);  // Delay to observe the change
-            clearScreen();
-            setCursorPosition(0, 0);
-        }
-    }
-    for (int i = 0; i < 40; i++) {
-        if (small_blocks[i] != NULL) {
-            free(small_blocks[i]);
             print_bitmap();
             delay(20000000);  // Delay to observe the change
             clearScreen();

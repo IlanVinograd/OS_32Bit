@@ -12,6 +12,8 @@
         "gdt.h": "c",
         "memory_manager.h": "c",
         "detect_memory.h": "c",
-        "bitmap.h": "c"
+        "bitmap.h": "c",
+        "pit.h": "c",
+        "scheduler.h": "c"
     }
 }
