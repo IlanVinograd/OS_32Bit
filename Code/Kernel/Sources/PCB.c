@@ -26,7 +26,6 @@ task* create_task(uintptr_t task_entry_function) {
         *(--new_task->sp) = 0;                     // EDI
         *(--new_task->sp) = 0;                     // EBP
 
-        setCursorPosition(22,0);
         printf("Creating Task PID: %d | PC: %p | SP: %p | State: %d\n", COLOR_BLACK_ON_WHITE,
                new_task->pid, new_task->pc, new_task->sp, new_task->state);
 
@@ -82,6 +81,7 @@ void remove_task(task* task_terminate) {
 }
 
 void print_task_and_count() {
+    setCursorPosition(0, 0);
     printf("Tasks now | %d |\n", COLOR_BLACK_ON_WHITE, nowTasks);
     task* temp = current;
 

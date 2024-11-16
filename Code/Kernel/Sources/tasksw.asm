@@ -91,4 +91,6 @@ switch_to_task:
     pop ebx
     popfd                         ; Restore flags
 
+    sti                           ; Enable interrupts
+
     ret                           ;Load next task's EIP from its kernel stack

@@ -21,13 +21,12 @@ void schedule() {
         next_task = next_task->next;
     }
 
-    setCursorPosition(2, 30);
-    printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc);
     switch_to_task(next_task);
-
-    // Display the current process PID
-    setCursorPosition(1, 30);
+    
+    __asm__("cli");
+    setCursorPosition(8, 0);
     printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
+    __asm__("sti");
 }
 
 void init_scheduler(void) {
@@ -46,11 +45,9 @@ void init_scheduler(void) {
         nowTasks++;
     }
 
-
     pit_init(1);  // Set the PIT to 100Hz, or every 10ms
 }
 
-
-void yield (void) {
+void yield(void) {
     schedule();
 }
