@@ -7,6 +7,7 @@ global switch_to_task
 ;    enum State state;           // Process state
 ;    uintptr_t pc;               // Program Counter
 ;    uintptr_t *sp;              // Stack Pointer
+;    uintptr_t *base_sp;         // Stack Pointer Base for free();
 ;    uintptr_t esp0;             // Stack Pointer
 ;    uintptr_t ss0;              // Stack Pointer
 ;    uint32_t flags;             // Status/Flags register
@@ -15,14 +16,15 @@ global switch_to_task
 
 ; Locations must match the task structure in PCB.h
 struc PCB
-     .pid   resd 1
-     .state resd 1
-     .pc    resd 1
-     .esp   resd 1
-     .esp0  resd 1
-     .ss0   resd 1
-     .flags resd 1
-     .next  resd 1
+     .pid      resd 1
+     .state    resd 1
+     .pc       resd 1
+     .esp      resd 1
+     .base_esp resd 1
+     .esp0     resd 1
+     .ss0      resd 1
+     .flags    resd 1
+     .next     resd 1
 endstruc
 
 ;// TSS entry structure
@@ -61,8 +63,6 @@ switch_to_task:
     ;  EIP is already saved on the stack by the caller's "CALL" instruction
     ;  Segment registers are constants (while running kernel code) so they don't need to be saved
 
-    pushfd                        ; Preserve flags
-
     ; Preserve the non-volatile registers (per the 32-bit System V ABI)
     push ebx
     push esi
@@ -73,7 +73,7 @@ switch_to_task:
     mov [edi+PCB.esp],esp         ;Save ESP for previous task's kernel stack in the process's PCB
 
     ; Load next task's state
-    mov esi,[esp+(5+1)*4]         ;esi = address of the next task's "process control block" (parameter passed on stack)
+    mov esi,[esp+(4+1)*4]         ;esi = address of the next task's "process control block" (parameter passed on stack)
     mov [current],esi             ;Current task's PCB is the next task PCB
 
     mov esp,[esi+PCB.esp]         ;Load ESP for next task's kernel stack from the process's PCB
@@ -89,8 +89,5 @@ switch_to_task:
     pop edi
     pop esi
     pop ebx
-    popfd                         ; Restore flags
-
-    sti                           ; Enable interrupts
 
     ret                           ;Load next task's EIP from its kernel stack

@@ -21,8 +21,13 @@ void schedule() {
         next_task = next_task->next;
     }
 
+    __asm__("cli"); // This needs to be fixed
     switch_to_task(next_task);
-    
+    __asm__("sti"); // This needs to be fixed
+
+    // CLI/STI critical section probably unneeded if you modify your interrupt
+    // handler to save the CursorPosition at the start and restore it before returning
+    // I have to investigate.
     __asm__("cli");
     setCursorPosition(8, 0);
     printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
@@ -38,7 +43,7 @@ void init_scheduler(void) {
         current->flags = 0;
         current->pc = 0;
         current->sp = 0;
-        current->fsp = current->sp;
+        current->base_sp = 0;
         current->esp0 = 0;
         current->ss0 = 0;
         current->next = current;

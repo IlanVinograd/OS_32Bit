@@ -19,7 +19,7 @@ typedef struct task {
     enum State state;           // Process state
     uintptr_t pc;               // Program Counter
     uintptr_t *sp;              // Task Stack Pointer
-    uintptr_t *fsp;              // Stack Pointer for free();
+    uintptr_t *base_sp;         // Stack Pointer Base for free();
     uintptr_t esp0;             // Kernel Stack Pointer
     uintptr_t ss0;              // Kernel Stack Selector
     uint32_t flags;             // Status/Flags register

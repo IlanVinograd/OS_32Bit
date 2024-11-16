@@ -31,14 +31,6 @@ IDT_C_OBJ := $(OBJECTS)/idt_handler.o
 IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
 TASK_ASM_OBJ := $(OBJECTS)/tasksw.o
 
-SWITCH_SRC := $(SOURCES)/switch.asm
-SWITCH_OBJ := $(OBJECTS)/switch.o
-
-# Rule to assemble switch.asm
-$(SWITCH_OBJ): $(SWITCH_SRC)
-	@echo "Assembling $<..."
-	$(NASM) -f elf32 $< -o $@
-	
 # Output binaries and objects
 STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
 STAGE2_BIN := $(PROJECT_ROOT)/Boot/Stage2/stage2.bin
