@@ -40,9 +40,7 @@ void schedule(void) {
         next_task = next_task->next;
     }
 
-    lock_scheduler();
     switch_to_task(next_task);
-    unlock_scheduler();
 
     // CLI/STI critical section probably unneeded if you modify your interrupt
     // handler to save the CursorPosition at the start and restore it before returning
@@ -74,5 +72,7 @@ void init_scheduler(void) {
 }
 
 void yield(void) {
+    lock_scheduler();
     schedule();
+    unlock_scheduler();
 }

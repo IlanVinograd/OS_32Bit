@@ -18,7 +18,9 @@ void pit_handler(void) { // each 10ms will be interrupt.
     setCursorPosition(24, 0);
     printf("Bitmap state: Pages ( %d / %d ) (TASKS: %d) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, nowTasks, tick_count);
     pic_send_eoi(0);
-    schedule(); // Will enable interrupts
+    lock_scheduler();
+    schedule();
+    unlock_scheduler();
 }
 
 uint32_t get_tick_count(void) {
