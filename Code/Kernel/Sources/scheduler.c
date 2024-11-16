@@ -33,7 +33,6 @@ void init_scheduler(void) {
     if (current) {
         current->pid = new_pid();
         current->state = READY;
-        current->flags = 0;
         current->pc = 0;
         current->sp = 0;
         current->esp0 = 0;

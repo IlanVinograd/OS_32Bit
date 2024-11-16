@@ -19,7 +19,6 @@ task* create_task(uintptr_t task_entry_function) {
         // Initialize task stack. These entries are reverse to the order
         // that switch_to_task pops them when it returns.
         *(--new_task->sp) = task_entry_function;   // EIP
-        *(--new_task->sp) = 0x202;                 // Eflags - IF=1, BIT1=1 (reserved)
         *(--new_task->sp) = 0;                     // EBX
         *(--new_task->sp) = 0;                     // ESI
         *(--new_task->sp) = 0;                     // EDI
