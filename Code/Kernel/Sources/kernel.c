@@ -67,6 +67,8 @@ void _start(void) {
     while(nowTasks > 1) {
         yield();
     }
+    free_scheduler();
+
     setCursorPosition(24, 0);
     printf("DONE\n",COLOR_BLACK_ON_WHITE);
 

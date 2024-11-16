@@ -23,6 +23,8 @@ typedef struct task {
     uint32_t pid;               // Process ID
     enum State state;           // Process state
     uintptr_t pc;               // Program Counter
+    uintptr_t *alloc_sp;        // Pointer to malloced stack (NULL if not allocated with malloc)
+                                //     This can be used to free the stack when task is freed.
     uintptr_t *sp;              // Task Stack Pointer
     uintptr_t esp0;             // Kernel Stack Pointer
     uintptr_t ss0;              // Kernel Stack Selector

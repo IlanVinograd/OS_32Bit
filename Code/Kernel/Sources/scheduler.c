@@ -27,6 +27,11 @@ void schedule() {
     printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
 }
 
+// Call after all tasks are completed
+void free_scheduler(void) {
+    remove_task(current);
+}
+
 void init_scheduler(void) {
     current = (task*)malloc(sizeof(task));
     // Create a PCB for the main task
@@ -35,6 +40,7 @@ void init_scheduler(void) {
         current->state = READY;
         current->pc = 0;
         current->sp = 0;
+        current->alloc_sp = NULL;
         current->esp0 = 0;
         current->ss0 = 0;
         current->next = current;

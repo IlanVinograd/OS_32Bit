@@ -10,7 +10,8 @@ task* create_task(uintptr_t task_entry_function) {
         new_task->pid = new_pid();
         new_task->state = READY;
         new_task->pc = task_entry_function;
-        new_task->sp = (uintptr_t *)malloc(STACK_SIZE) + STACK_SIZE;
+        new_task->alloc_sp = (uintptr_t *)malloc(STACK_SIZE);
+        new_task->sp = new_task->alloc_sp + STACK_SIZE;
 
 //      This would apply to a user task
 //      new_task->esp0 = (uintptr_t)malloc(STACK_SIZE) + STACK_SIZE;
@@ -50,6 +51,8 @@ void remove_task(task* task_terminate) {
     if (!current || !task_terminate) return;
 
     if (current == task_terminate && current->next == current) {
+        if(task_terminate->alloc_sp)
+            free(task_terminate->alloc_sp);
         free(task_terminate);
         current = NULL;
         nowTasks--;
@@ -68,6 +71,8 @@ void remove_task(task* task_terminate) {
                 current = temp->next;
             }
 
+            if(task_terminate->alloc_sp)
+                free(task_terminate->alloc_sp);
             free(task_terminate);
             nowTasks--;
             return;

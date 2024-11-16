@@ -6,6 +6,7 @@ global switch_to_task
 ;    uint32_t pid;               // Process ID
 ;    enum State state;           // Process state
 ;    uintptr_t pc;               // Program Counter
+;    uintptr_t *alloc_sp;        // Task Stack Pointer
 ;    uintptr_t *sp;              // Stack Pointer
 ;    uintptr_t esp0;             // Stack Pointer
 ;    uintptr_t ss0;              // Stack Pointer
@@ -15,14 +16,15 @@ global switch_to_task
 
 ; Locations must match the task structure in PCB.h
 struc PCB
-     .pid   resd 1
-     .state resd 1
-     .pc    resd 1
-     .esp   resd 1
-     .esp0  resd 1
-     .ss0   resd 1
-     .flags resd 1
-     .next  resd 1
+     .pid        resd 1
+     .state      resd 1
+     .pc         resd 1
+     .alloc_esp  resd 1
+     .esp        resd 1
+     .esp0       resd 1
+     .ss0        resd 1
+     .flags      resd 1
+     .next       resd 1
 endstruc
 
 ;// TSS entry structure
