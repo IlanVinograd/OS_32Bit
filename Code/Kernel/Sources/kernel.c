@@ -90,9 +90,13 @@ void job1_entry() {
 // Mark the task_main as not returning
 __attribute__((noreturn)) void task_main() {
     while (true) {
-        // Wait until next interrupt
-        // This effectively becomes an idle task
-        __asm__("hlt");
+        // If there are no other tasks besides main running then
+        // hlt until next interrupt
+        if (nowTasks == 1)
+            __asm__("hlt");
+        // Otherwise immediately yield to next task
+        else
+            yield();
     }
 }
 
