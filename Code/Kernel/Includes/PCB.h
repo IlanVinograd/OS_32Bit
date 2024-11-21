@@ -1,5 +1,5 @@
-#ifndef _PCB_H
-#define _PCB_H
+#ifndef _PCB_H_
+#define _PCB_H_
 
 #include <stdint.h>
 #include <vga.h>
@@ -36,4 +36,4 @@ uint32_t new_pid();
 void free_task_resources(task* terminated_task);
 void set_task_state(task* task, enum State state);
 
-#endif
+#endif /* _PCB_H_ */

@@ -1,5 +1,5 @@
-#ifndef SCHEDULER_H
-#define SCHEDULER_H
+#ifndef _SCHEDULER_H_
+#define _SCHEDULER_H_
 
 #include <stdint.h>
 #include <PCB.h>
@@ -14,4 +14,5 @@ void yield(void);
 void lock_scheduler(void);
 // Call unlock_scheduler at the very start of every task!
 void unlock_scheduler(void);
-#endif
+
+#endif /* _SCHEDULER_H_ */

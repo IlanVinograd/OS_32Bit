@@ -27,4 +27,4 @@ void* realloc(void* ptr, uint32_t new_size);
 void* realloc_safe(void* ptr, uint32_t new_size, uint32_t ptr_size);
 
 
-#endif
+#endif /* _MEMORY_MANAGER_H_ */

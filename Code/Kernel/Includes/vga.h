@@ -22,8 +22,6 @@
 #define YELLOW_ON_BLACK_CAUTION       (TextStyle){ Light_Brown, 1, Black, 0 }
 #define GREEN_ON_BLACK_SUCCESS        (TextStyle){ Green, 1, Black, 0 }
 
-
-
 typedef struct {
     uint8_t foreground;
     uint8_t Foreground_Intensity;

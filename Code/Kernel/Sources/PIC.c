@@ -1,6 +1,4 @@
-//#include "../includes/pic.h"
-#include <stdint.h>
-#include "io.h"
+#include "../Includes/PIC.h"
 
 #define PIC1_COMMAND 0x20
 #define PIC1_DATA 0x21

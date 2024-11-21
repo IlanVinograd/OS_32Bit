@@ -1,5 +1,5 @@
-#ifndef PIT_H
-#define PIT_H
+#ifndef _PIT_H_
+#define _PIT_H_
 
 #include <stdint.h>
 #include <io.h>
@@ -18,4 +18,4 @@ void pit_init(uint32_t frequency);
 void pit_handler(void);
 uint32_t get_tick_count(void);
 
-#endif
+#endif /* _PIT_H_ */

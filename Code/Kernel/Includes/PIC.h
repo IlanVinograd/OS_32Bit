@@ -1,5 +1,5 @@
-#ifndef PIC_H
-#define PIC_H
+#ifndef _PIC_H_
+#define _PIC_H_
 
 #include <stdint.h>
 #include <idt.h>
@@ -11,4 +11,4 @@
 void pic_init(void);
 void pic_send_eoi(uint8_t irq);
 
-#endif
+#endif /* _PIC_H_ */

@@ -1,5 +1,5 @@
-#ifndef KERNEL_H
-#define KERNEL_H
+#ifndef _KERNEL_H_
+#define _KERNEL_H_
 
 #define KERNEL_HIGH_BASE   0xC0000000
 #define KERNEL_LOW_BASE    0x00000000
@@ -27,4 +27,4 @@
 extern uint32_t pagesAllocated;
 extern uintptr_t idle_stack_pointer; 
 
-#endif
+#endif /* _KERNEL_H_ */

@@ -1,4 +1,4 @@
-#include<gdt.h>
+#include "../Includes/gdt.h"
 
 // Declare the GDT with 6 entries
 struct gdt_entry gdt[6];

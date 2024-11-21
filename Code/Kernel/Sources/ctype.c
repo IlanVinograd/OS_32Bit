@@ -1,7 +1,5 @@
 #include "../Includes/ctype.h"
 
-#include "ctype.h"
-
 // Define the _ctype array. Each character has a corresponding set of flags.
 char _ctype[] = {
     /* 0x00 - 0x07: Control characters */
