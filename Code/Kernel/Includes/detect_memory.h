@@ -1,5 +1,5 @@
-#ifndef _DETECT_MEMORY_H
-#define _DETECT_MEMORY_H
+#ifndef _DETECT_MEMORY_H_
+#define _DETECT_MEMORY_H_
 
 #include <stdint.h>
 #include <vga.h>
@@ -16,4 +16,4 @@ typedef struct {
 
 void init_memory_map();
 
-#endif
+#endif /* _DETECT_MEMORY_H_ */

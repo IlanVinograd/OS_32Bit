@@ -1,5 +1,5 @@
-#ifndef IDT_H
-#define IDT_H
+#ifndef _IDT_H_
+#define _IDT_H_
 
 #include <stdint.h>
 #include <vga.h>
@@ -28,4 +28,4 @@ void isr14_handler(void);
 void irq0_handler(void);
 void irq1_handler(void);
 
-#endif
+#endif /* _IDT_H_ */

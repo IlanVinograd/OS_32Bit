@@ -2,13 +2,13 @@
 [org 0x8000]
 
 ; Kernel sectors to read
-KERNEL_SECTORS     equ 55
-KERNEL_LOAD_SEG    equ 0x1000
-KERNEL_LOAD_OFFSET equ 0x0000
-KERNEL_LOAD_ADDR   equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
-KERNEL_RUN_ADDR    equ 0x100000
-MEMORY_MAP_ADDR    equ 0x5000
-MEMORY_COUNT_ADDR    equ 0x4FFE
+KERNEL_SECTORS      equ 55
+KERNEL_LOAD_SEG     equ 0x1000
+KERNEL_LOAD_OFFSET  equ 0x0000
+KERNEL_LOAD_ADDR    equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
+KERNEL_RUN_ADDR     equ 0x100000
+MEMORY_MAP_ADDR     equ 0x5000
+MEMORY_COUNT_ADDR   equ 0x4FFE
 
 jmp a20_enable
 
@@ -173,11 +173,11 @@ protected_mode_entry:
     mov esp, ebp
 
     ; Copy kernel from KERNEL_LOAD_ADDR to KERNEL_RUN_ADDR
-    cld
-    mov esi, KERNEL_LOAD_ADDR
-    mov edi, KERNEL_RUN_ADDR
-    mov ecx, KERNEL_SECTORS * 512   ; Number of bytes
-    rep movsb
+    cld                                ; Clear direction flag to increment pointers
+    mov esi, KERNEL_LOAD_ADDR          ; Source address: where the kernel is currently loaded
+    mov edi, KERNEL_RUN_ADDR           ; Destination address: where the kernel should run
+    mov ecx, KERNEL_SECTORS * 512      ; Number of bytes to copy (sectors * 512 bytes per sector)
+    rep movsb                          ; Copy bytes from [ESI] to [EDI], ECX times
 
     ; Jump to kernel entry point
     jmp 0x08:KERNEL_RUN_ADDR

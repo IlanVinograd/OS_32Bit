@@ -1,7 +1,6 @@
 #ifndef _STDARG_H_
 #define _STDARG_H_
 
-
 typedef char* va_list;
 
 // This macro calculates the size of an argument based on its type

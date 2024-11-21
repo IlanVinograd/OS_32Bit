@@ -1,53 +1,78 @@
 #include "../Includes/scheduler.h"
 
-extern void switch_to_task_handler(task* current, task* next);
+extern void switch_to_task(task *next_task);
+
 extern task* current;
+int IRQ_disable_counter = 0;
 
-void schedule() {
+// Based on Brendan's multitaking tutorial
+// SMP (multiple processors) is not yet implemented
+void lock_scheduler(void) {
+#ifndef SMP
+    __asm__("cli");
+    IRQ_disable_counter++;
+#endif
+}
+
+void unlock_scheduler(void) {
+#ifndef SMP
+    IRQ_disable_counter--;
+    if(IRQ_disable_counter == 0) {
+        __asm__("sti");
+    }
+#endif
+}
+
+void schedule(void) {
     if (!current) {
         return;
     }
 
-    if (current->state == TERMINATED) {
-        task* terminated_task = current;
-        current = current->next;
-        remove_task(terminated_task);
+    // Find the next task that is ready to run
+    task* next_task = current->next;
+
+    if (next_task->state == TERMINATED) {
+        remove_task(next_task);
+        next_task = current->next;
     }
 
-    task* next_task = current;
-    do {
+    while (next_task->state != READY && next_task != current) {
         next_task = next_task->next;
-    } while (next_task->state != READY && next_task != current);
-
-    if (next_task == current && current->state != READY) {
-        // No READY tasks, idle state
-        printf("No tasks ready. Entering idle state...\n", RED_ON_BLACK_WARNING);
-        return;
     }
 
-    setCursorPosition(15, 0);
-    printf("   Prev process: %d | sp: %p | cp: %p\n", YELLOW_ON_BLACK_CAUTION, current->pid,current->sp,current->pc);
+    switch_to_task(next_task);
 
-    // Perform context switch
-    set_task_state(current, READY);
-    task* prev = current;
-    current = next_task;
-    set_task_state(current, RUNNING);
-    switch_to_task_handler(prev, next_task); // Giving Page Fault.
-
-    setCursorPosition(16, 0);
-    printf("Current process: %d | sp: %p | cp: %p", YELLOW_ON_BLACK_CAUTION, current->pid,current->sp,current->pc );
+    // CLI/STI critical section probably unneeded if you modify your interrupt
+    // handler to save the CursorPosition at the start and restore it before returning
+    // I have to investigate.
+    __asm__("cli");
+    setCursorPosition(8, 0);
+    printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
+    __asm__("sti");
 }
 
-void init_scheduler() {
-    if (!current) {
-        printf("Scheduler initialization failed: No tasks available.\n", RED_ON_BLACK_WARNING);
-        return;
+void init_scheduler(void) {
+    current = (task*)malloc(sizeof(task));
+    // Create a PCB for the main task
+    if (current) {
+//        current->pid = new_pid();
+        current->pid = 0;
+        current->state = READY;
+        current->flags = 0;
+        current->pc = 0;
+        current->sp = 0;
+        current->base_sp = 0;
+        current->esp0 = 0;
+        current->ss0 = 0;
+        current->next = current;
+        nowTasks++;
     }
 
-    current->state = RUNNING;
+    pit_init(1);  // Set the PIT to 100Hz, or every 10ms
 }
 
-void yield(){
-    //not in use currently.
+void yield(void) {
+    lock_scheduler();
+    schedule();
+    unlock_scheduler();
 }

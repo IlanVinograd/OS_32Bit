@@ -24,4 +24,4 @@ bool_t is_page_free(uint32_t page_number);
 void  mark_pages_as_used(uint32_t page_number);
 void mark_page_as_free(uint32_t page_number);
 
-#endif
+#endif /* _BITMAP_H_ */

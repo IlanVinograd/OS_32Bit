@@ -1,5 +1,5 @@
-#ifndef _PCB_H
-#define _PCB_H
+#ifndef _PCB_H_
+#define _PCB_H_
 
 #include <stdint.h>
 #include <vga.h>
@@ -15,14 +15,19 @@ enum State {
 };
 
 typedef struct task {
-    uint32_t pid;          // Process ID
-    uintptr_t sp;          // Stack Pointer
-    uintptr_t pc;          // Program Counter
-    uint32_t state;        // Task state (e.g., READY, RUNNING)
-    struct task* next;     // Pointer to the next task in the scheduler's list
+    uint32_t pid;               // Process ID
+    enum State state;           // Process state
+    uintptr_t pc;               // Program Counter
+    uintptr_t *sp;              // Task Stack Pointer
+    uintptr_t *base_sp;         // Stack Pointer Base for free();
+    uintptr_t esp0;             // Kernel Stack Pointer
+    uintptr_t ss0;              // Kernel Stack Selector
+    uint32_t flags;             // Status/Flags register
+    struct task *next;          // Pointer to the next task in the list
 } task;
 
 extern task* current;
+extern uint32_t nowTasks;
 
 task* create_task(uintptr_t task_entry_function);
 void remove_task(struct task* task_terminate);
@@ -31,4 +36,4 @@ uint32_t new_pid();
 void free_task_resources(task* terminated_task);
 void set_task_state(task* task, enum State state);
 
-#endif
+#endif /* _PCB_H_ */

@@ -10,9 +10,21 @@ task* create_task(uintptr_t task_entry_function) {
         new_task->pid = new_pid();
         new_task->state = READY;
         new_task->pc = task_entry_function;
-        new_task->sp = ((uintptr_t)malloc(STACK_SIZE) + STACK_SIZE) & ~0xF;
+        new_task->base_sp = (uintptr_t *)malloc(STACK_SIZE);
+        new_task->sp = new_task->base_sp + STACK_SIZE; // Set SP to top of stack
 
-        setCursorPosition(22,0);
+//      This would apply to a user task
+//      new_task->esp0 = (uintptr_t)malloc(STACK_SIZE) + STACK_SIZE;
+//      new_task->ss0 = 0x10;
+
+        // Initialize task stack. These entries are reverse to the order
+        // that switch_to_task pops them when it returns.
+        *(--new_task->sp) = task_entry_function;   // EIP
+        *(--new_task->sp) = 0;                     // EBX
+        *(--new_task->sp) = 0;                     // ESI
+        *(--new_task->sp) = 0;                     // EDI
+        *(--new_task->sp) = 0;                     // EBP
+
         printf("Creating Task PID: %d | PC: %p | SP: %p | State: %d\n", COLOR_BLACK_ON_WHITE,
                new_task->pid, new_task->pc, new_task->sp, new_task->state);
 
@@ -37,6 +49,8 @@ void remove_task(task* task_terminate) {
     if (!current || !task_terminate) return;
 
     if (current == task_terminate && current->next == current) {
+        if (task_terminate->base_sp)
+            free(task_terminate->base_sp);
         free(task_terminate);
         current = NULL;
         nowTasks--;
@@ -55,6 +69,8 @@ void remove_task(task* task_terminate) {
                 current = temp->next;
             }
 
+            if (task_terminate->base_sp)
+                free(task_terminate->base_sp);
             free(task_terminate);
             nowTasks--;
             return;
@@ -66,6 +82,7 @@ void remove_task(task* task_terminate) {
 }
 
 void print_task_and_count() {
+    setCursorPosition(0, 0);
     printf("Tasks now | %d |\n", COLOR_BLACK_ON_WHITE, nowTasks);
     task* temp = current;
 

@@ -1,4 +1,4 @@
-#include <string.h>
+#include "../Includes/string.h"
 
 uint8_t *strcpy(uint8_t *dest, const uint8_t *src){
     uint8_t *original_dest = dest;
@@ -349,4 +349,3 @@ int32_t isNumber(uint8_t* num) {
 
     return 1;
 }
-

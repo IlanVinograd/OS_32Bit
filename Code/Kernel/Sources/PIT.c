@@ -11,16 +11,15 @@ void pit_init(uint32_t frequency) {
 }
 
 void pit_handler(void) { // each 10ms will be interrupt.
-    __asm__("cli"); // CLI to avoid recursive.
-    
+    // IRQ handlers ar set as interrupt gates in the IDT so interrupts
+    // will always be off a this point as a result. No CLI necessary.
     tick_count++;
-    setCursorPosition(0, 0);
-    printf("Bitmap state: Pages ( %d / %d ) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, tick_count);
 
-    schedule();
-
+    setCursorPosition(24, 0);
+    printf("Bitmap state: Pages ( %d / %d ) (TASKS: %d) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, nowTasks, tick_count);
     pic_send_eoi(0);
-    __asm__("sti");
+    // Don't need to lock the scheduler from within the interrupt handler
+    schedule();
 }
 
 uint32_t get_tick_count(void) {
