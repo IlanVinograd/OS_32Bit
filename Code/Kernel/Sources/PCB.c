@@ -11,7 +11,7 @@ task* create_task(uintptr_t task_entry_function) {
         new_task->state = READY;
         new_task->pc = task_entry_function;
         new_task->base_sp = (uintptr_t *)malloc(STACK_SIZE);
-        new_task->sp = new_task->sp + STACK_SIZE; // Set SP to top of stack
+        new_task->sp = new_task->base_sp + STACK_SIZE; // Set SP to top of stack
 
 //      This would apply to a user task
 //      new_task->esp0 = (uintptr_t)malloc(STACK_SIZE) + STACK_SIZE;
