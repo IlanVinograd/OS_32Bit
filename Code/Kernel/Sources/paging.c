@@ -1,5 +1,4 @@
-#include <paging.h>
-#include <kernel.h>
+#include "../Includes/paging.h"
 
 // Load CR3 with Page Directory address
 void load_page_directory(uintptr_t page_directory_address) {
@@ -17,7 +16,6 @@ static void enable_paging(void) {
 // Set up the first page table, first 4MB of memory (identity mapping)
 // This function must be called from low memory, not high!
 void init_paging(void) {
-
     // Mark the rest of the page directory as not present
     for (int i = 0; i < 1024; i++) {
         page_directory_low[i] = 0;
@@ -26,25 +24,30 @@ void init_paging(void) {
     // Add the page table to the page directory
     page_directory_low[0]   = ((uintptr_t)first_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
     page_directory_low[768] = ((uintptr_t)new_page_table_low) | PAGE_PRESENT | PAGE_WRITABLE;
-
+    page_directory_low[769] = ((uintptr_t)new_page_alloc_table_high) | PAGE_PRESENT | PAGE_WRITABLE; // page table for page_alloc
+    // Identity map the first 4MB of memory
     for (int i = 0; i < 1024; i++) {
         first_page_table_low[i] = (i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
     }
 
-    /* Map 0xC0000000-0xC03FFFFF to 0x00000000-0x003FFFFF. */
+    // Map 0xC0000000-0xC03FFFFF to 0x00000000-0x003FFFFF
     for (int i = 0; i < 1024; i++) {
         new_page_table_low[i] = (0x000000 + i * PAGE_SIZE) | PAGE_PRESENT | PAGE_WRITABLE;
     }
 
+    // Map 0xC0400000-0xC07FFFFF to 0x00400000-0x007FFFFF 
+    for (int i = 0; i < 1024; i++) {
+        if(i == 1023) new_page_alloc_table_high[i] = (0x00400000 + (i * PAGE_SIZE))  | PAGE_WRITABLE;
+        else new_page_alloc_table_high[i] = (0x00400000 + (i * PAGE_SIZE)) | PAGE_PRESENT | PAGE_WRITABLE;
+    }
+    
     // Load the page directory address into the CR3 register
     load_page_directory((uintptr_t)page_directory_low);
-
     // Enable paging by setting the PG bit in CR0
     enable_paging();
 }
 
 // The following functions can be called from the higher half
-
 // Get contents of CR3 register
 uintptr_t get_cr3(void) {
     uintptr_t cr3;
@@ -64,9 +67,7 @@ void flush_tlb(void) {
 }
 
 // Remove first 4MiB identity mapping
-// from 0x00000000-0x00000000 to 0x00000000-0x003FFFFF.
 void remove_first_4MiB_mapping(void) {
     page_directory_low[0] = ((uintptr_t)0x00000000);
     flush_tlb();
 }
-

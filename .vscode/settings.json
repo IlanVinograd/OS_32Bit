@@ -8,6 +8,14 @@
         "ctype.h": "c",
         "paging.h": "c",
         "io.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "gdt.h": "c",
+        "memory_manager.h": "c",
+        "detect_memory.h": "c",
+        "bitmap.h": "c",
+        "pit.h": "c",
+        "scheduler.h": "c",
+        "pcb.h": "c",
+        "string.h": "c"
     }
 }

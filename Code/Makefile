@@ -24,10 +24,12 @@ ASM_OBJECTS := $(patsubst $(SOURCES)/%.s, $(OBJECTS)/%.o, $(ASM_SOURCES))
 # IDT source files
 IDT_C_SRC := $(SOURCES)/idt.o
 IDT_ASM_SRC := $(SOURCES)/idt_setup.asm
+TASK_ASM_SRC := $(SOURCES)/tasksw.asm
 
 # Object files for IDT
 IDT_C_OBJ := $(OBJECTS)/idt_handler.o
 IDT_ASM_OBJ := $(OBJECTS)/idt_setup.o
+TASK_ASM_OBJ := $(OBJECTS)/tasksw.o
 
 # Output binaries and objects
 STAGE1_BIN := $(PROJECT_ROOT)/Boot/Stage1/stage1.bin
@@ -37,10 +39,10 @@ KERNEL_BIN := $(BINS)/kernel.bin
 IMG := $(PROJECT_ROOT)/bootloader.img
 
 # Compiler and Assembler Flags
-CFLAGS := -I$(INCLUDES) -ffreestanding
+CFLAGS := -I$(INCLUDES) -ffreestanding -Wall -Wextra -O3 -fomit-frame-pointer -g
 QEMU_IMG := qemu-img
 DD := dd
-NASM := nasm
+NASM := nasm -g
 
 # Always clean before building
 output: clean $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(IMG)
@@ -72,11 +74,22 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC)
 	@echo "Assembling IDT ASM code..."
 	$(NASM) -f elf32 $(IDT_ASM_SRC) -o $(IDT_ASM_OBJ)
 
-# Compile and link the kernel, include IDT object files
-$(KERNEL_BIN): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(LINKER_SCRIPT)
-	@echo "Compiling and linking Kernel with IDT..."
-	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ)
-	i686-elf-objcopy -O binary $(KERNEL_ELF) $(KERNEL_BIN)
+# Assemble Task ASM code
+$(TASK_ASM_OBJ): $(TASK_ASM_SRC)
+	@echo "Assembling IDT ASM code..."
+	$(NASM) -f elf32 $(TASK_ASM_SRC) -o $(TASK_ASM_OBJ)
+
+# Linking Kernel to an ELF executable..."
+
+$(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ) $(LINKER_SCRIPT)
+	@echo "Linking Kernel to an ELF executable..."
+	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ)
+
+
+# Creating a binary version of the Kernel ELF file..."
+$(KERNEL_BIN): $(KERNEL_ELF)
+	@echo "Creating a binary version of the Kernel ELF file..."
+	i686-elf-objcopy -O binary $< $@
 
 # Rule to compile C source files into object files
 $(OBJECTS)/%.o: $(SOURCES)/%.c

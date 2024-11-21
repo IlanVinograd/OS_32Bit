@@ -5,11 +5,20 @@ extern isr6_handler    ; C function to handle ISR6 (Invalid Opcode)
 extern isr13_handler    ; C function to handle ISR13 (General Protection Fault)
 extern isr14_handler    ; C function to handle ISR14 (Page Fault)
 
+extern pit_handler
+
+extern irq0_handler
+extern irq1_handler 
+
 global load_idt
 global isr0
 global isr6
 global isr13
 global isr14
+global isr32
+
+global irq0
+global irq1
 
 section .text
 
@@ -26,7 +35,6 @@ isr0:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
-    jmp $              ; Infinite loop to halt system
 
 ; ISR for Invalid Opcode Exception (ISR6)
 isr6:
@@ -38,7 +46,6 @@ isr6:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
-    jmp $              ; Infinite loop to halt system
 
 ; ISR for General Protection Fault Exception (ISR13)
 isr13:
@@ -50,7 +57,6 @@ isr13:
     popa               ; Restore registers
 
     hlt                ; Halt the CPU to stop further execution
-    jmp $              ; Infinite loop to halt system
 
 ; ISR for Page Fault Exception (ISR14)
 isr14:
@@ -61,5 +67,19 @@ isr14:
 
     popa               ; Restore registers
 
-    hlt                ; Halt the CPU to stop further execution
-    jmp $              ; Infinite loop to halt system
+    add esp, 4         ; Remove error code
+    iret
+
+; PIT IRQ0 - Timer
+irq0:
+    pusha               ; Save all registers
+    call pit_handler    ; Call the PIT handler to increment tick_count
+    popa                ; Restore registers
+    iret
+
+; IRQ1 - Keyboard
+irq1:
+    pusha               ; Save all registers
+    call irq1_handler   ; Call the C handler function for IRQ1
+    popa                ; Restore registers
+    iret
