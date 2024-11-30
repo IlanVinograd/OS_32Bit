@@ -45,10 +45,10 @@ void schedule(void) {
     // CLI/STI critical section probably unneeded if you modify your interrupt
     // handler to save the CursorPosition at the start and restore it before returning
     // I have to investigate.
-    __asm__("cli");
-    setCursorPosition(8, 0);
-    printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
-    __asm__("sti");
+    //__asm__("cli");
+    //setCursorPosition(8, 0);
+    //printf("Current process: %d | sp: %p | cp: %p", COLOR_BLACK_ON_WHITE, current->pid,current->sp,current->pc );
+    //__asm__("sti");
 }
 
 void init_scheduler(void) {

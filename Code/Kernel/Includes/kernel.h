@@ -5,6 +5,7 @@
 #define KERNEL_LOW_BASE    0x00000000
 #define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
 
+#include <keyboard.h>
 #include <scheduler.h>
 #include <PIC.h>
 #include <PIT.h>

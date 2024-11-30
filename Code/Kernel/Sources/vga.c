@@ -2,52 +2,25 @@
 
 uint16_t CursorPosition;
 TextStyle currentColor;
+char* osVersion;
 
 volatile uint16_t *const video_text_mem = (uint16_t *)VGA_VIDEO_MEMORY;
 
 void initScreen(char* version) {
-    printf("                 ,\n"
-           "                /|      ___\n"
-           "               / |   ,-~ /\n"
-           "              Y :|  //  /\n"
-           "              | jj /( .^\n"
-           "              >-\"~\"-v\"\n"
-           "             /       Y\n"
-           "            jo  o    |\n"
-           "           ( ~T~     j\n"
-           "            >._-' _./\n"
-           "           /   \"~\"  |\n"
-           "          Y     _,  |\n"
-           "         /| ;-\"~ _  l\n"
-           "        / l/ ,-\"~    \\\n"
-           "        \\//\\//      .- \\\n"
-           "         Y        /    Y\n"
-           "         l       I     !\n"
-           "         ]\\      _\\    /\"\\\n"
-           "        (\" ~----( ~   Y.  )\n"
-           "    ~~~~~~~~~~~~~~~~~~~~~~~~~\n", COLOR_BLACK_ON_WHITE);
-           
-    setCursorPosition(8, 14);
-    putc('T', RED_ON_BLACK_WARNING);
-    setCursorPosition(20, 4);
-    printf("Version OS: %s", COLOR_BLINKING_YELLOW, version);
-
-    setCursorPosition(3, 33);
-    printf("Shell Will be here",GREEN_ON_BLACK_SUCCESS);
-    setCursorPosition(5, 33);
-    
+    osVersion = version;
     //Continue Init Here
 }
 
-void clearScreen(void){
+void clearScreen(void) {
     uint8_t *video_address = (uint8_t *)video_text_mem;
-    uint32_t i = 0;
 
-    while(i + VGA_SHELL_BEGIN < (VGA_ROWS * VGA_COLS) - VGA_SHELL_BEGIN){
-        video_address[i] = ' ';
-        i += 2;
+    for (uint32_t row = 1; row < VGA_ROWS; row++) { // Skip row 0
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
+            video_address[index] = ' ';                 // Blank character
+            video_address[index + 1] = 0x07;            // Default VGA attribute
+        }
     }
-    CursorPosition = VGA_SHELL_BEGIN;
 }
 
 void setCursorPosition(uint16_t row, uint16_t col) {

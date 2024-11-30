@@ -1,6 +1,7 @@
 #include "../Includes/PIT.h"
 
 volatile uint32_t tick_count = 0;
+extern char* osVersion;
 
 void pit_init(uint32_t frequency) {
     uint32_t divisor = PIT_FREQUENCY / frequency;
@@ -15,8 +16,8 @@ void pit_handler(void) { // each 10ms will be interrupt.
     // will always be off a this point as a result. No CLI necessary.
     tick_count++;
 
-    setCursorPosition(24, 0);
-    printf("Bitmap state: Pages ( %d / %d ) (TASKS: %d) - PIT Ticks - %d \n", COLOR_BLACK_ON_WHITE, pagesAllocated, NUM_PAGES, nowTasks, tick_count);
+    setCursorPosition(0, 0);
+    printf("OS Version: (%s) Bitmap Pages ( %d / %d ) (TASKS: %d) - PIT Ticks - %d\n", COLOR_BLUE_ON_WHITE, osVersion, pagesAllocated, NUM_PAGES, nowTasks, tick_count);
     pic_send_eoi(0);
     // Don't need to lock the scheduler from within the interrupt handler
     schedule();

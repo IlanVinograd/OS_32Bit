@@ -15,8 +15,9 @@
 #define COLOR_BLACK_ON_WHITE          (TextStyle){ White, 1, Black, 0 }
 #define COLOR_GREEN_ON_BLUE           (TextStyle){ Blue, 1, Green, 0 }
 #define COLOR_BLINKING_YELLOW         (TextStyle){ Light_Brown, 1, Black, 0 } // Blinking yellow text
-#define COLOR_GRAY_ON_CYAN            (TextStyle){ Cyan, 0, Gray, 0 }
+#define COLOR_GRAY_ON_BLACK           (TextStyle){ Cyan, 0, Black, 0 }
 #define COLOR_LIGHT_RED_ON_DARK_GRAY  (TextStyle){ Dark_Gray, 1, Light_Red, 0 }
+#define COLOR_BLUE_ON_WHITE           (TextStyle){ White, 1, Blue, 0 } 
 
 #define RED_ON_BLACK_WARNING          (TextStyle){ Red, 1, Black, 0 }
 #define YELLOW_ON_BLACK_CAUTION       (TextStyle){ Light_Brown, 1, Black, 0 }
@@ -34,7 +35,7 @@ enum colors {
     Light_Blue, Light_Green, Light_Cyan, Light_Red, Light_Magenta, Light_Brown, White,
 };
 
-void initScreen(char* version);
+void initScreen(char* osVersion);
 void clearScreen(void);
 void setCursorPosition(uint16_t row, uint16_t col);
 uint16_t getCursorPosition(void);
