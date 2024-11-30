@@ -10,5 +10,6 @@
 void handle_keyboard_input();
 int8_t scancode_to_ascii(uint8_t scancode);
 void enable_keyboard();
+int8_t apply_shift_to_key(int8_t key);
 
 #endif /* _KEYBOARD_H_ */
