@@ -13,6 +13,7 @@
 #define VGA_SHELL_BEGIN 0
 
 #define COLOR_BLACK_ON_WHITE          (TextStyle){ White, 1, Black, 0 }
+#define COLOR_BLACK_ON_WHITE_BLINKING (TextStyle){ White, 1, Black, 0 }
 #define COLOR_GREEN_ON_BLUE           (TextStyle){ Blue, 1, Green, 0 }
 #define COLOR_BLINKING_YELLOW         (TextStyle){ Light_Brown, 1, Black, 0 } // Blinking yellow text
 #define COLOR_GRAY_ON_BLACK           (TextStyle){ Cyan, 0, Black, 0 }
@@ -42,5 +43,6 @@ uint16_t getCursorPosition(void);
 uint8_t encodeColor(TextStyle style);
 void putc(char c, TextStyle style);
 void printf(const char* fmt, TextStyle style, ...);
+void scroll_screen();
 
 #endif /* _VGA_H_ */

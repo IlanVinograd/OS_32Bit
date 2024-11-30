@@ -169,3 +169,20 @@ void printf(const char* fmt, TextStyle style, ...) {
 
     va_end(args);
 }
+
+void scroll_screen() {
+    uint16_t *video_address = (uint16_t *)video_text_mem;
+
+    // Copy each row to the row above it
+    for (uint32_t row = 1; row < VGA_ROWS; row++) {
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            video_address[(row - 1) * VGA_COLS + col] = video_address[row * VGA_COLS + col];
+        }
+    }
+
+    // Clear the last row
+    uint8_t color = encodeColor(COLOR_BLACK_ON_WHITE);
+    for (uint32_t col = 0; col < VGA_COLS; col++) {
+        video_address[(VGA_ROWS - 1) * VGA_COLS + col] = (' ' & 0xFF) | (color << 8);
+    }
+}

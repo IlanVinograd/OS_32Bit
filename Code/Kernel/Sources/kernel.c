@@ -1,7 +1,25 @@
 #include "../Includes/kernel.h"
 
 volatile uint32_t tasks_finished = 0;
-extern keyboard_cursor_position;
+extern uint16_t keyboard_cursor_position;
+
+void cursor_signal(){
+    volatile uint32_t ticks_last = 0;
+    bool_t cursorSignal = true;
+    unlock_scheduler();
+
+    while(true) {
+        volatile uint32_t ticks_now = get_tick_count();
+
+        if(ticks_now - ticks_last >= DELAY_CURSOR_SIGNAL){
+            cursorSignal = !cursorSignal;
+            ticks_last = ticks_now;
+
+            blinkCursor(cursorSignal);
+        }
+        yield();
+    }
+}
 
 void keyboard_test_task() {
     unlock_scheduler();
@@ -22,6 +40,7 @@ void job1_entry() {
     keyboard_cursor_position = 1 * VGA_COLS + VGA_COLS; // Move to the next space after the message
 
     create_task((uintptr_t)keyboard_test_task);
+    create_task((uintptr_t)cursor_signal);
 
     while (true) {
         yield(); // Keep yielding to allow other tasks to run
