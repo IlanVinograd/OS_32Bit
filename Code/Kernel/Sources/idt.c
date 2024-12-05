@@ -78,5 +78,6 @@ void irq0_handler(void) {
 }
 
 void irq1_handler(void) {
+    handle_keyboard_input();
     pic_send_eoi(1);  // Send EOI to PIC for IRQ1
 }

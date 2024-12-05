@@ -13,10 +13,17 @@
 #define VGA_SHELL_BEGIN 0
 
 #define COLOR_BLACK_ON_WHITE          (TextStyle){ White, 1, Black, 0 }
-#define COLOR_GREEN_ON_BLUE           (TextStyle){ Blue, 1, Green, 0 }
+#define COLOR_BLACK_ON_WHITE_BLINKING (TextStyle){ White, 1, Black, 0 }
 #define COLOR_BLINKING_YELLOW         (TextStyle){ Light_Brown, 1, Black, 0 } // Blinking yellow text
-#define COLOR_GRAY_ON_CYAN            (TextStyle){ Cyan, 0, Gray, 0 }
+#define COLOR_GRAY_ON_BLACK           (TextStyle){ Cyan, 0, Black, 0 }
 #define COLOR_LIGHT_RED_ON_DARK_GRAY  (TextStyle){ Dark_Gray, 1, Light_Red, 0 }
+#define COLOR_BLUE_ON_WHITE           (TextStyle){ White, 0, Blue, 0 }
+#define COLOR_BLUE_ON_LIGHT_BROWN     (TextStyle){ Light_Brown, 1, Blue, 0 }
+#define COLOR_WHITE_ON_BLUE           (TextStyle){ Blue, 0, White, 0 }
+#define COLOR_CYAN_ON_BLUE            (TextStyle){ Blue, 0, Cyan, 0 }
+#define COLOR_GREEN_ON_BLUE           (TextStyle){ Blue, 0, Green, 0 }
+#define COLOR_RED_ON_BLUE             (TextStyle){ Blue, 0, Red, 0 }
+#define COLOR_LIGHT_MAGENTA_ON_BLUE   (TextStyle){ Blue, 0, Light_Magenta, 0 }
 
 #define RED_ON_BLACK_WARNING          (TextStyle){ Red, 1, Black, 0 }
 #define YELLOW_ON_BLACK_CAUTION       (TextStyle){ Light_Brown, 1, Black, 0 }
@@ -34,12 +41,16 @@ enum colors {
     Light_Blue, Light_Green, Light_Cyan, Light_Red, Light_Magenta, Light_Brown, White,
 };
 
-void initScreen(char* version);
+void initScreen(char* osVersion);
 void clearScreen(void);
 void setCursorPosition(uint16_t row, uint16_t col);
 uint16_t getCursorPosition(void);
 uint8_t encodeColor(TextStyle style);
 void putc(char c, TextStyle style);
 void printf(const char* fmt, TextStyle style, ...);
+void scroll_screen();
+void fillFirstTwoLinesBlue(void);
+void fillBackGroundLines(TextStyle color);
+TextStyle mapInputToColor(const char* input);
 
 #endif /* _VGA_H_ */

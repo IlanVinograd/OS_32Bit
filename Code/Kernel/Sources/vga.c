@@ -1,53 +1,31 @@
 #include "../Includes/vga.h"
 
 uint16_t CursorPosition;
-TextStyle currentColor;
+TextStyle backGroundColor = COLOR_CYAN_ON_BLUE;
+char* osVersion;
 
 volatile uint16_t *const video_text_mem = (uint16_t *)VGA_VIDEO_MEMORY;
 
 void initScreen(char* version) {
-    printf("                 ,\n"
-           "                /|      ___\n"
-           "               / |   ,-~ /\n"
-           "              Y :|  //  /\n"
-           "              | jj /( .^\n"
-           "              >-\"~\"-v\"\n"
-           "             /       Y\n"
-           "            jo  o    |\n"
-           "           ( ~T~     j\n"
-           "            >._-' _./\n"
-           "           /   \"~\"  |\n"
-           "          Y     _,  |\n"
-           "         /| ;-\"~ _  l\n"
-           "        / l/ ,-\"~    \\\n"
-           "        \\//\\//      .- \\\n"
-           "         Y        /    Y\n"
-           "         l       I     !\n"
-           "         ]\\      _\\    /\"\\\n"
-           "        (\" ~----( ~   Y.  )\n"
-           "    ~~~~~~~~~~~~~~~~~~~~~~~~~\n", COLOR_BLACK_ON_WHITE);
-           
-    setCursorPosition(8, 14);
-    putc('T', RED_ON_BLACK_WARNING);
-    setCursorPosition(20, 4);
-    printf("Version OS: %s", COLOR_BLINKING_YELLOW, version);
+    osVersion = version;
 
-    setCursorPosition(3, 33);
-    printf("Shell Will be here",GREEN_ON_BLACK_SUCCESS);
-    setCursorPosition(5, 33);
-    
-    //Continue Init Here
+    // Fill the first two rows with a blue background
+    fillFirstTwoLinesBlue();
+
+    // Set the cursor position to start below the blue rows
+    setCursorPosition(2, 0);
 }
 
-void clearScreen(void){
+void clearScreen(void) {
     uint8_t *video_address = (uint8_t *)video_text_mem;
-    uint32_t i = 0;
-
-    while(i + VGA_SHELL_BEGIN < (VGA_ROWS * VGA_COLS) - VGA_SHELL_BEGIN){
-        video_address[i] = ' ';
-        i += 2;
+    
+    for (uint32_t row = 1; row < VGA_ROWS; row++) { // Skip row 0
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
+            video_address[index] = ' ';                 // Blank character
+            video_address[index + 1] = 0x07;            // Default VGA attribute
+        }
     }
-    CursorPosition = VGA_SHELL_BEGIN;
 }
 
 void setCursorPosition(uint16_t row, uint16_t col) {
@@ -91,7 +69,6 @@ void putc(char c, TextStyle style){
     setCursorPosition(cursor_position / VGA_COLS, cursor_position % VGA_COLS);
 }
 
-
 void printf(const char* fmt, TextStyle style, ...) {
     va_list args;
     va_start(args, style);
@@ -101,6 +78,19 @@ void printf(const char* fmt, TextStyle style, ...) {
         if (c == '%') {
             // Handle format specifiers
             char next = *fmt++;
+            int width = 0; // Field width for padding
+            bool_t zero_pad = false;
+
+            // Parse width and padding
+            if (next == '0') {
+                zero_pad = true;
+                next = *fmt++;
+            }
+            while (next >= '0' && next <= '9') {
+                width = width * 10 + (next - '0');
+                next = *fmt++;
+            }
+
             switch (next) {
                 case 'c': {
                     // Print a character
@@ -117,10 +107,18 @@ void printf(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 case 'd': {
-                    // Print an integer
+                    // Print an integer with optional padding
                     int num = va_arg(args, int);
-                    char buffer[16];  // Buffer to hold the string representation of the number
-                    itoa(num, buffer, 10);  // Convert integer to string (base 10)
+                    char buffer[16];  // Buffer to hold the string representation
+                    itoa(num, buffer, 10);
+                    int len = strlen((uint8_t*)buffer);
+
+                    if (zero_pad) {
+                        while (len < width) {
+                            putc('0', style);
+                            len++;
+                        }
+                    }
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
@@ -130,8 +128,16 @@ void printf(const char* fmt, TextStyle style, ...) {
                 case 'u': {
                     // Print an unsigned integer
                     unsigned int num = va_arg(args, unsigned int);
-                    char buffer[16];  // Buffer to hold the string representation of the number
-                    utoa(num, buffer, 10);  // Convert unsigned integer to string (base 10)
+                    char buffer[16];
+                    utoa(num, buffer, 10);
+                    int len = strlen((uint8_t*)buffer);
+
+                    if (zero_pad) {
+                        while (len < width) {
+                            putc('0', style);
+                            len++;
+                        }
+                    }
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
@@ -142,7 +148,7 @@ void printf(const char* fmt, TextStyle style, ...) {
                     // Print a hexadecimal integer
                     int num = va_arg(args, int);
                     char buffer[16];
-                    itoa(num, buffer, 16);  // Convert integer to hex string
+                    itoa(num, buffer, 16);
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
@@ -150,32 +156,30 @@ void printf(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 case 'p': {
-                    // Print a pointer address
-                    uintptr_t ptr = (uintptr_t)va_arg(args, void*);  // Cast the pointer to uintptr_t
-                    char buffer[17];  // Buffer for the hexadecimal string
-                    hexToString(ptr, (uint8_t*)buffer);  // Convert the address to a hexadecimal string
+                    uintptr_t addr = va_arg(args, uintptr_t);
+                    putc('0', style);
+                    putc('x', style);
+                    char buffer[16];
+                    utoa(addr, buffer, 16); // Convert address to hex
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
                     }
                     break;
                 }
-                case 'l': {
-                    // Detect %llx for 64-bit hexadecimal
-                    if (*fmt == 'l' && *(fmt + 1) == 'x') {
-                        fmt += 2;  // Skip the 'llx'
-                        uint64_t num = va_arg(args, uint64_t);
-                        char buffer[17];  // Buffer for 64-bit hex string
-                        hexToString(num, (uint8_t*)buffer);  // Convert 64-bit integer to hex string
-                        char* p = buffer;
-                        while (*p) {
-                            putc(*p++, style);
-                        }
+                case 'X': {  // Uppercase hexadecimal
+                    uint32_t num = va_arg(args, uint32_t);
+                    char buffer[16];
+                    utoa(num, buffer, 16); // Convert to hexadecimal
+                    char* p = buffer;
+                    while (*p) {
+                        putc((*p >= 'a' && *p <= 'f') ? *p - 32 : *p, style); // Convert to uppercase
+                        p++;
                     }
                     break;
                 }
                 default: {
-                    // If it's an unknown specifier, just print it as is
+                    // Print unknown format as-is
                     putc('%', style);
                     putc(next, style);
                     break;
@@ -185,8 +189,6 @@ void printf(const char* fmt, TextStyle style, ...) {
             // Handle newline character
             uint16_t cursor_position = getCursorPosition();
             uint16_t row = cursor_position / VGA_COLS;
-
-            // Move to the beginning of the next row
             row++;
             setCursorPosition(row, 0);
         } else {
@@ -195,4 +197,57 @@ void printf(const char* fmt, TextStyle style, ...) {
     }
 
     va_end(args);
+}
+
+void scroll_screen() {
+    uint16_t *video_address = (uint16_t *)video_text_mem;
+
+    // Copy each row to the row above it, skipping the first two rows
+    for (uint32_t row = 3; row < VGA_ROWS; row++) {
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            video_address[(row - 1) * VGA_COLS + col] = video_address[row * VGA_COLS + col];
+        }
+    }
+
+    // Clear the last row (bottom row)
+    uint8_t color = encodeColor(COLOR_BLACK_ON_WHITE); // Default background color
+    for (uint32_t col = 0; col < VGA_COLS; col++) {
+        video_address[(VGA_ROWS - 1) * VGA_COLS + col] = (' ' & 0xFF) | (color << 8);
+    }
+}
+
+void fillFirstTwoLinesBlue(void) {
+    uint8_t *video_address = (uint8_t *)video_text_mem;
+
+    for (uint32_t row = 0; row < 2; row++) { // Only the first two rows
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
+            video_address[index] = ' '; // Blank character
+            video_address[index + 1] = encodeColor(COLOR_BLUE_ON_WHITE); // Blue background
+        }
+    }
+}
+
+void fillBackGroundLines(TextStyle color) {
+    uint8_t *video_address = (uint8_t *)video_text_mem;
+
+    for (uint32_t row = 2; row < VGA_ROWS; row++) { // Only after first two rows.
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
+            video_address[index + 1] = encodeColor(color); // Color background
+        }
+    }
+}
+
+TextStyle mapInputToColor(const char* input) {
+    if (strcmp((const uint8_t*)input, (const uint8_t*)"cyan") == 0) {
+        return COLOR_CYAN_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"red") == 0) {
+        return COLOR_RED_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"green") == 0) {
+        return COLOR_GREEN_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"magenta") == 0) {
+        return COLOR_LIGHT_MAGENTA_ON_BLUE;
+    }
+    return backGroundColor;  // Default case
 }
