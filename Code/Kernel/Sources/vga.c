@@ -238,3 +238,16 @@ void fillBackGroundLines(TextStyle color) {
         }
     }
 }
+
+TextStyle mapInputToColor(const char* input) {
+    if (strcmp((const uint8_t*)input, (const uint8_t*)"cyan") == 0) {
+        return COLOR_CYAN_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"red") == 0) {
+        return COLOR_RED_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"green") == 0) {
+        return COLOR_GREEN_ON_BLUE;
+    } else if (strcmp((const uint8_t*)input, (const uint8_t*)"magenta") == 0) {
+        return COLOR_LIGHT_MAGENTA_ON_BLUE;
+    }
+    return backGroundColor;  // Default case
+}

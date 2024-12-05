@@ -66,7 +66,7 @@ void _start(void) {
     init_bitmap();
     pic_init();
     init_free_list();
-    initScreen("0.4");
+    initScreen("0.7");
     enable_keyboard();
 
     // Create the initial task for keyboard testing

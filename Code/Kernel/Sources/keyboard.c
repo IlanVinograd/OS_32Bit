@@ -8,6 +8,8 @@ char* inputBuffer;
 uint32_t inputBufferIndex = 0;
 uint32_t inputBufferSize = 256;
 
+extern TextStyle backGroundColor;
+
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);
 
@@ -179,8 +181,12 @@ void handle_enter() {
         row = VGA_ROWS - 1; // Keep the cursor on the last row
     }
     setCursorPosition(row, 0);
-
-    // Add logic when enter pressed
+    
+    // Add logic when enter pressed for test.
+    if (inputBuffer[0] != '\0') { // Check if inputBuffer is not empty
+        backGroundColor = mapInputToColor(inputBuffer); // Map user input to a color
+    }
+    // end test
 
     // Move cursor to the next line
     row++;
