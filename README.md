@@ -1,6 +1,8 @@
 # Overview Version 0.4
 **OS_32Bit** is an open-source operating system built on a 32-bit architecture, providing essential functionalities for educational and practical purposes. It encourages collaboration from the developer community.
 
+![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
+
 ## Core Components:
 - Kernel Entry
 - Virtual Memory
@@ -12,6 +14,7 @@
 - Utility Libraries
 - Input/Output
 - Memory Detection
+- Time and Date
 - Test and Debug
 
 # Installation
