@@ -25,9 +25,6 @@ task* create_task(uintptr_t task_entry_function) {
         *(--new_task->sp) = 0;                     // EDI
         *(--new_task->sp) = 0;                     // EBP
 
-        printf("Creating Task PID: %d | PC: %p | SP: %p | State: %d\n", COLOR_BLACK_ON_WHITE,
-               new_task->pid, new_task->pc, new_task->sp, new_task->state);
-
         // Insert task in circular list
         if (!current) {
             current = new_task;
@@ -83,7 +80,6 @@ void remove_task(task* task_terminate) {
 
 void print_task_and_count() {
     setCursorPosition(0, 0);
-    printf("Tasks now | %d |\n", COLOR_BLACK_ON_WHITE, nowTasks);
     task* temp = current;
 
     if (!current) {
@@ -92,7 +88,6 @@ void print_task_and_count() {
     }
 
     do {
-        printf("PID: %d -> ", COLOR_BLINKING_YELLOW, temp->pid);
         temp = temp->next;
     } while (temp != current);
 }

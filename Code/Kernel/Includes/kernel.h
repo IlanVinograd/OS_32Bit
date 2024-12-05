@@ -4,7 +4,10 @@
 #define KERNEL_HIGH_BASE   0xC0000000
 #define KERNEL_LOW_BASE    0x00000000
 #define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
+#define DELAY_CURSOR_SIGNAL 50
 
+#include <time.h>
+#include <keyboard.h>
 #include <scheduler.h>
 #include <PIC.h>
 #include <PIT.h>
