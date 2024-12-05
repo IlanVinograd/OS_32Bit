@@ -21,6 +21,14 @@ void cursor_signal(){
     }
 }
 
+void rtc_sync_task() {
+    unlock_scheduler();
+    while (true) {
+        synchronize_rtc_with_system_time();
+        yield();
+    }
+}
+
 void keyboard_test_task() {
     unlock_scheduler();
     
@@ -41,6 +49,7 @@ void job1_entry() {
 
     create_task((uintptr_t)keyboard_test_task);
     create_task((uintptr_t)cursor_signal);
+    create_task((uintptr_t)rtc_sync_task);
 
     while (true) {
         yield(); // Keep yielding to allow other tasks to run

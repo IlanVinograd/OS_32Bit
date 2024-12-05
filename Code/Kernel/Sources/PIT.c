@@ -16,8 +16,21 @@ void pit_handler(void) { // each 10ms will be interrupt.
     // will always be off a this point as a result. No CLI necessary.
     tick_count++;
 
+    pit_update_system_time();
+
+    // Fetch current RTC time
+    RTC_Time current_time;
+    read_rtc(&current_time);
+
     setCursorPosition(0, 0);
     printf("OS Version: (%s) Bitmap Pages ( %d / %d ) (TASKS: %d) - PIT Ticks - %d\n", COLOR_BLUE_ON_WHITE, osVersion, pagesAllocated, NUM_PAGES, nowTasks, tick_count);
+    
+    setCursorPosition(1, 0);
+    printf("Date: %04d-%02d-%02d Time: %02d:%02d:%02d   \n",
+           COLOR_BLUE_ON_WHITE, 
+           current_time.year, current_time.month, current_time.day, 
+           current_time.hour, current_time.minute, current_time.second);
+
     pic_send_eoi(0);
     // Don't need to lock the scheduler from within the interrupt handler
     schedule();

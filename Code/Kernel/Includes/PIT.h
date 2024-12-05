@@ -1,6 +1,7 @@
 #ifndef _PIT_H_
 #define _PIT_H_
 
+#include <time.h>
 #include <stdint.h>
 #include <io.h>
 #include <vga.h>

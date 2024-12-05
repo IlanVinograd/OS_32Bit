@@ -44,5 +44,6 @@ uint8_t encodeColor(TextStyle style);
 void putc(char c, TextStyle style);
 void printf(const char* fmt, TextStyle style, ...);
 void scroll_screen();
+void fillFirstTwoLinesBlue(void);
 
 #endif /* _VGA_H_ */
