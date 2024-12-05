@@ -16,6 +16,7 @@
         "pit.h": "c",
         "scheduler.h": "c",
         "pcb.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "pic.h": "c"
     }
 }

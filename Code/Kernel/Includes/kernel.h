@@ -6,6 +6,7 @@
 #define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
 #define DELAY_CURSOR_SIGNAL 50
 
+#include <time.h>
 #include <keyboard.h>
 #include <scheduler.h>
 #include <PIC.h>

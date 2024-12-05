@@ -69,7 +69,6 @@ void putc(char c, TextStyle style){
     setCursorPosition(cursor_position / VGA_COLS, cursor_position % VGA_COLS);
 }
 
-
 void printf(const char* fmt, TextStyle style, ...) {
     va_list args;
     va_start(args, style);
@@ -153,6 +152,29 @@ void printf(const char* fmt, TextStyle style, ...) {
                     char* p = buffer;
                     while (*p) {
                         putc(*p++, style);
+                    }
+                    break;
+                }
+                case 'p': {
+                    uintptr_t addr = va_arg(args, uintptr_t);
+                    putc('0', style);
+                    putc('x', style);
+                    char buffer[16];
+                    utoa(addr, buffer, 16); // Convert address to hex
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+                    break;
+                }
+                case 'X': {  // Uppercase hexadecimal
+                    uint32_t num = va_arg(args, uint32_t);
+                    char buffer[16];
+                    utoa(num, buffer, 16); // Convert to hexadecimal
+                    char* p = buffer;
+                    while (*p) {
+                        putc((*p >= 'a' && *p <= 'f') ? *p - 32 : *p, style); // Convert to uppercase
+                        p++;
                     }
                     break;
                 }

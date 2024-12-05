@@ -19,6 +19,7 @@
 #define COLOR_GRAY_ON_BLACK           (TextStyle){ Cyan, 0, Black, 0 }
 #define COLOR_LIGHT_RED_ON_DARK_GRAY  (TextStyle){ Dark_Gray, 1, Light_Red, 0 }
 #define COLOR_BLUE_ON_WHITE           (TextStyle){ White, 1, Blue, 0 } 
+#define COLOR_BLUE_ON_LIGHT_BROWN     (TextStyle){ Light_Brown, 1, Blue, 0 } 
 
 #define RED_ON_BLACK_WARNING          (TextStyle){ Red, 1, Black, 0 }
 #define YELLOW_ON_BLACK_CAUTION       (TextStyle){ Light_Brown, 1, Black, 0 }

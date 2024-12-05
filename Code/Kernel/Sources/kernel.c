@@ -29,25 +29,12 @@ void rtc_sync_task() {
     }
 }
 
-void keyboard_test_task() {
+void initial_jobs() {
     unlock_scheduler();
-    
-    // Wait for keyboard inputs indefinitely (can be improved with more complex logic)
-    while (true) {
-        __asm__("hlt"); // Halt the CPU until the next interrupt
-    }
-}
-
-void job1_entry() {
-    unlock_scheduler();
-    setCursorPosition(1, 0);
-    const char *test_message = "Keyboard Test: Type something...";
-    printf("%s\n", GREEN_ON_BLACK_SUCCESS, test_message);
 
     // Set the initial keyboard cursor position
     keyboard_cursor_position = 1 * VGA_COLS + VGA_COLS; // Move to the next space after the message
 
-    create_task((uintptr_t)keyboard_test_task);
     create_task((uintptr_t)cursor_signal);
     create_task((uintptr_t)rtc_sync_task);
 
@@ -89,7 +76,6 @@ void _start(void) {
     setCursorPosition(0, 24);
     print_task_and_count();
 
-    // Create the keyboard test task
-    create_task((uintptr_t)job1_entry);
+    create_task((uintptr_t)initial_jobs);
     task_main(); // Do main task. task_main will not return
 }
