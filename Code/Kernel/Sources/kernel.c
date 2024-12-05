@@ -1,7 +1,6 @@
 #include "../Includes/kernel.h"
 
 volatile uint32_t tasks_finished = 0;
-extern uint16_t keyboard_cursor_position;
 
 void cursor_signal(){
     volatile uint32_t ticks_last = 0;
@@ -37,7 +36,7 @@ void initial_jobs() {
 
     create_task((uintptr_t)cursor_signal);
     create_task((uintptr_t)rtc_sync_task);
-
+    
     while (true) {
         yield(); // Keep yielding to allow other tasks to run
     }
@@ -72,9 +71,6 @@ void _start(void) {
     // Create the initial task for keyboard testing
     init_scheduler();
     __asm__("sti");
-
-    setCursorPosition(0, 24);
-    print_task_and_count();
 
     create_task((uintptr_t)initial_jobs);
     task_main(); // Do main task. task_main will not return

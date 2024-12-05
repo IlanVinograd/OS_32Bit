@@ -229,6 +229,7 @@ void fillFirstTwoLinesBlue(void) {
 }
 
 void fillBackGroundLines(TextStyle color) {
+    fillFirstTwoLinesBlue(); // Invesigate.
     uint8_t *video_address = (uint8_t *)video_text_mem;
 
     for (uint32_t row = 2; row < VGA_ROWS; row++) { // Only after first two rows.

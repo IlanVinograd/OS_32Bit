@@ -186,6 +186,9 @@ void handle_enter() {
     if (inputBuffer[0] != '\0') { // Check if inputBuffer is not empty
         backGroundColor = mapInputToColor(inputBuffer); // Map user input to a color
     }
+    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"test") == 0) {
+        create_task((uintptr_t)test);
+    }
     // end test
 
     // Move cursor to the next line
