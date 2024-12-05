@@ -1,7 +1,7 @@
 #include "../Includes/vga.h"
 
 uint16_t CursorPosition;
-TextStyle currentColor;
+TextStyle backGroundColor = COLOR_CYAN_ON_BLUE;
 char* osVersion;
 
 volatile uint16_t *const video_text_mem = (uint16_t *)VGA_VIDEO_MEMORY;
@@ -228,3 +228,13 @@ void fillFirstTwoLinesBlue(void) {
     }
 }
 
+void fillBackGroundLines(TextStyle color) {
+    uint8_t *video_address = (uint8_t *)video_text_mem;
+
+    for (uint32_t row = 2; row < VGA_ROWS; row++) { // Only after first two rows.
+        for (uint32_t col = 0; col < VGA_COLS; col++) {
+            uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
+            video_address[index + 1] = encodeColor(color); // Color background
+        }
+    }
+}

@@ -3,6 +3,7 @@
 volatile uint32_t tick_count = 0;
 extern char* osVersion;
 extern task* current;
+extern TextStyle backGroundColor;
 
 void pit_init(uint32_t frequency) {
     uint32_t divisor = PIT_FREQUENCY / frequency;
@@ -23,6 +24,7 @@ void pit_handler(void) { // each 10ms will be interrupt.
     RTC_Time current_time;
     read_rtc(&current_time);
 
+    fillBackGroundLines(backGroundColor);
     setCursorPosition(0, 0);
     printf(" [ %04d / %02d / %02d ] OS Version (", COLOR_BLUE_ON_WHITE,
            current_time.year, current_time.month, current_time.day);
