@@ -13,6 +13,6 @@ void test_isr0();
 void test_isr6();
 void test_isr13();
 void test_isr14();
-void test_malloc_fragmentation_large_scale();
+void test();
 
 #endif /* _TEST_H_ */

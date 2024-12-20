@@ -1,4 +1,5 @@
 #include "../Includes/test.h"
+extern TextStyle backGroundColor;
 
 void delay(uint32_t count) {
     while (count--) {
@@ -113,121 +114,68 @@ void test_isr14(){
     (void)value;  // Avoid compiler warning
 }
 
-void test_malloc_fragmentation_large_scale() {
-    setCursorPosition(23, 0);
-    printf("Running large-scale fragmentation stress test...\n", COLOR_BLINKING_YELLOW);
-    setCursorPosition(0, 0);
+volatile int count = 0;
 
-    // Step 1: Allocate 900 pages for large blocks (above 4097 bytes)
-    setCursorPosition(22, 0);
-    printf("Subtest 1: Allocating 900 large blocks (above 4097 bytes)...", YELLOW_ON_BLACK_CAUTION);
+void task1_entry() {
     setCursorPosition(0, 0);
-    void* large_blocks[900];
+     __asm__ ("cli"); // Disable interrupts before critical section
+    printf("Task 1 Start - %d\n", backGroundColor, count);
+     __asm__ ("sti"); // Re-enable interrupts after critical section
 
-    for (int i = 0; i < 300; i++) {
-        large_blocks[i] = malloc(4097 + (i * 16));  // Large blocks of increasing sizes
-        if (large_blocks[i] == NULL) {
-            printf("Error: Allocation failed for large block %d\n", RED_ON_BLACK_WARNING, i);
-            break;
-        }
-        print_bitmap();
-        delay(20000000);  // Delay to observe the change
-        clearScreen();
-        setCursorPosition(0, 0);
+    for (int i = 1; i <= 100000; i++) {
+         __asm__ ("cli"); // Disable interrupts before modifying shared resource
+        count++;
+        setCursorPosition(10, 0);
+        printf("Loop count 1 -> %d", backGroundColor, count);
+         __asm__ ("sti"); // Re-enable interrupts after modification
     }
 
-    // Step 2: Free every fifth large block to create heavy fragmentation
-    setCursorPosition(22, 0);
-    printf("Subtest 2: Freeing every fifth large block to create fragmentation...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    for (int i = 0; i < 300; i += 5) {
-        if (large_blocks[i] != NULL) {
-            free(large_blocks[i]);
-            print_bitmap();
-            delay(20000000);  // Delay to observe the change
-            clearScreen();
-            setCursorPosition(0, 0);
-        }
-    }
+     __asm__ ("cli"); // Disable interrupts before critical section
+    setCursorPosition(4, 0);
+    printf("Task 1 Finished - %d\n", backGroundColor, count);
+     __asm__ ("sti"); // Re-enable interrupts after critical section
 
-    // Step 3: Allocate 90 pages for smaller blocks (under 4096 bytes)
-    setCursorPosition(22, 0);
-    printf("Subtest 3: Allocating 90 smaller blocks (under 4096 bytes)...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    void* small_blocks[90];
+    set_task_state(current, TERMINATED); // Mark task as terminated.
+    yield(); // Yield control explicitly.
+}
 
-    for (int i = 0; i < 40; i++) {
-        small_blocks[i] = malloc(1024 + (i * 32));  // Small blocks of increasing sizes
-        if (small_blocks[i] == NULL) {
-            printf("Warning: Allocation failed for small block %d\n", RED_ON_BLACK_WARNING, i);
-            break;
-        }
-        print_bitmap();
-        delay(20000000);  // Delay to observe the change
-        clearScreen();
-        setCursorPosition(0, 0);
-    }
+void task2_entry() {
+    setCursorPosition(1, 0);
+     __asm__ ("cli"); // Disable interrupts before critical section
+    printf("Task 2 Start - %d\n", backGroundColor, count);
+     __asm__ ("sti"); // Re-enable interrupts after critical section
 
-    // Step 4: Free every third small block to introduce more fragmentation
-    setCursorPosition(22, 0);
-    printf("Subtest 4: Freeing every third small block...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    for (int i = 0; i < 40; i += 3) {
-        if (small_blocks[i] != NULL) {
-            free(small_blocks[i]);
-            print_bitmap();
-            delay(20000000);  // Delay to observe the change
-            clearScreen();
-            setCursorPosition(0, 0);
+    for (int i = 1; i <= 100000; i++) {
+         __asm__ ("cli"); // Disable interrupts before modifying shared resource
+        count++;
+        setCursorPosition(11, 0);
+        printf("Loop count 2 -> %d", backGroundColor, count);
+         __asm__ ("sti"); // Re-enable interrupts after modification
+
+        if (i % 1000 == 0) {
+            yield(); // Yield control to another task.
         }
     }
 
-    // Step 5: Allocate new large blocks in fragmented memory
-    setCursorPosition(22, 0);
-    printf("Subtest 5: Allocating new large blocks in fragmented memory...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    for (int i = 0; i < 100; i++) {
-        large_blocks[i] = malloc(8192 + (i * 32));  // Allocate new large blocks
-        if (large_blocks[i] == NULL) {
-            printf("Error: Allocation failed for new large block %d\n", RED_ON_BLACK_WARNING, i);
-            break;
-        }
-        print_bitmap();
-        delay(20000000);  // Delay to observe the change
-        clearScreen();
-        setCursorPosition(0, 0);
-    }
+     __asm__ ("cli"); // Disable interrupts before critical section
+    setCursorPosition(5, 0);
+    printf("Task 2 Finished - %d\n", backGroundColor, count);
+     __asm__ ("sti"); // Re-enable interrupts after critical section
 
-    // Step 6: Free every sixth large block to create more fragmentation
-    setCursorPosition(22, 0);
-    printf("Subtest 6: Freeing every sixth large block...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    for (int i = 0; i < 300; i += 6) {
-        if (large_blocks[i] != NULL) {
-            free(large_blocks[i]);
-            print_bitmap();
-            delay(20000000);  // Delay to observe the change
-            clearScreen();
-            setCursorPosition(0, 0);
-        }
-    }
+    set_task_state(current, TERMINATED); // Mark task as terminated.
+    yield(); // Yield control explicitly.
+}
 
-    // Step 7: Final cleanup of all remaining blocks
-    setCursorPosition(22, 0);
-    printf("Subtest 7: Final cleanup of all blocks...", YELLOW_ON_BLACK_CAUTION);
-    setCursorPosition(0, 0);
-    for (int i = 0; i < 110; i++) {
-        if (large_blocks[i] != NULL) {
-            free(large_blocks[i]);
-            print_bitmap();
-            delay(20000000);  // Delay to observe the change
-            clearScreen();
-            setCursorPosition(0, 0);
-        }
-    }
+void test() {
+    unlock_scheduler(); // Ensure the scheduler is unlocked.
 
-    print_bitmap();
-    setCursorPosition(23, 0);
-    printf("Large-scale fragmentation stress test completed.\n", GREEN_ON_BLACK_SUCCESS);
-    setCursorPosition(0, 0);
+    clearScreen();
+
+    // Create tasks and add them to the scheduler.
+    create_task((uintptr_t)task1_entry);
+    create_task((uintptr_t)task2_entry);
+
+    // Set current task state to TERMINATED to indicate it is finished.
+    set_task_state(current, TERMINATED);
+    yield(); // Hand over control to the scheduler.
 }

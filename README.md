@@ -1,5 +1,5 @@
-# Overview Version 0.4
-**OS_32Bit** is an open-source operating system built on a 32-bit architecture, providing essential functionalities for educational and practical purposes. It encourages collaboration from the developer community.
+# Overview Version 0.7
+**OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
 ![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
 
