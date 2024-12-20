@@ -19,7 +19,7 @@ void initScreen(char* version) {
 void clearScreen(void) {
     uint8_t *video_address = (uint8_t *)video_text_mem;
     
-    for (uint32_t row = 1; row < VGA_ROWS; row++) { // Skip row 0
+    for (uint32_t row = 3; row < VGA_ROWS; row++) { // Skip row 2 for this we use row 3
         for (uint32_t col = 0; col < VGA_COLS; col++) {
             uint32_t index = (row * VGA_COLS + col) * 2; // Each character is 2 bytes
             video_address[index] = ' ';                 // Blank character
