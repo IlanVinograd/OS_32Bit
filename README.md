@@ -35,6 +35,10 @@ This section provides the necessary steps for installing the operating system, i
 To build the Docker image, use the following command:
 
 ```
+cd Code
+```
+
+```
 docker build -t os_32bit .
 ```
 
