@@ -1,6 +1,22 @@
 # Overview Version 0.7
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
+![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
+
+## Core Components:
+- Kernel Entry
+- Virtual Memory
+- Multitasking (Round Robin)
+- Task Switching
+- Interrupt Handling (IDT)
+- Global Descriptor Table (GDT)
+- Task State Segment (TSS)
+- Utility Libraries
+- Input/Output
+- Memory Detection
+- Time and Date
+- Test and Debug
+
 # Installation
 This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions.
 
@@ -19,11 +35,18 @@ This section provides the necessary steps for installing the operating system, i
 To build the Docker image, use the following command:
 
 ```
+cd Code
+```
+
+```
 docker build -t os_32bit .
+```
+```
+cd ..
 ```
 
 ### Run the Project
-- You can run the project using either Command Prompt or PowerShell.
+- Run the project using either CMD or PowerShell with the following commands.
 
   **CMD**
   ```
@@ -71,12 +94,6 @@ docker build -t os_32bit .
   ```
   docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
   ```
-
-# Technical Details
-**OS_32Bit** is designed around a 32-bit architecture, supporting essential functionalities for educational and practical purposes.
-
-- *Architecture Overview*
-- *File System Details*
 
 # Documentation
 Comprehensive documentation is provided to help you understand the core concepts and contribute to the project effectively.
