@@ -41,6 +41,9 @@ cd Code
 ```
 docker build -t os_32bit .
 ```
+```
+cd ..
+```
 
 ### Run the Project
 - Run the project using either CMD or PowerShell with the following commands.
