@@ -29,5 +29,6 @@
 
 extern uint32_t pagesAllocated;
 extern uintptr_t idle_stack_pointer; 
+extern uint16_t keyboard_cursor_position;
 
 #endif /* _KERNEL_H_ */

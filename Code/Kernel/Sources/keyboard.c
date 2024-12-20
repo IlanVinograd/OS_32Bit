@@ -175,18 +175,15 @@ void handle_enter() {
     setCursorPosition(row, col);
     putc(' ', COLOR_BLACK_ON_WHITE);
 
-    if (row >= VGA_ROWS) {
-        // Scroll the screen up by one row
-        scroll_screen();
-        row = VGA_ROWS - 1; // Keep the cursor on the last row
+    // Shell Functions
+    scrollIfNeeded(row);
+    handleBackgroundColor(inputBuffer);
+
+    //test temp
+    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"test") == 0) {
+        create_task((uintptr_t)test);
     }
-    setCursorPosition(row, 0);
-    
-    // Add logic when enter pressed for test.
-    if (inputBuffer[0] != '\0') { // Check if inputBuffer is not empty
-        backGroundColor = mapInputToColor(inputBuffer); // Map user input to a color
-    }
-    // end test
+    // end test temp
 
     // Move cursor to the next line
     row++;
