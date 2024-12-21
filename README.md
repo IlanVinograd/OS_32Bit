@@ -20,10 +20,10 @@
 # Installation
 This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions.
 
-- **Clone Repository**:
+- **Do Fork + Clone Repository**:
   
   ```
-  https://github.com/IlanVinograd/OS_32Bit.git
+  gh repo fork https://github.com/IlanVinograd/OS_32Bit.git --clone=true
   ```
 - **System Requirements**: A basic development environment with Docker installed.
 - **For GUI QEMU**: Required install -> [VcXsrv](https://sourceforge.net/projects/vcxsrv/), When you start VcXsrv, choose "Multiple Windows" and ensure that "Disable access control" is checked.
