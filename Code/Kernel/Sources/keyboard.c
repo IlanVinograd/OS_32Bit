@@ -1,5 +1,4 @@
 #include "../Includes/keyboard.h"
-#include "../Includes/shell.h"
 
 uint16_t keyboard_cursor_position = VGA_COLS;
 extern uint16_t CursorPosition;
