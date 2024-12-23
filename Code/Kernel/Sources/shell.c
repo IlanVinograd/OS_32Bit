@@ -13,6 +13,11 @@ void scrollIfNeeded(int row) {
 
 void handleBackgroundColor(const char* input) {
     if (input && input[0] != '\0') {
+        if (strcmp(input, "clear") == 0) {
+            clearScreen();
+            setCursorPosition(2, 0);
+            return;
+        }
         backGroundColor = mapInputToColor(input);
     }
 }
