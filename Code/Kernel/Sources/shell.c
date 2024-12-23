@@ -1,6 +1,7 @@
 #include "../Includes/shell.h"
 
 extern TextStyle backGroundColor;
+extern uint16_t keyboard_cursor_position;
 
 void scrollIfNeeded(int row) {
     if (row >= VGA_ROWS) {
@@ -15,4 +16,10 @@ void handleBackgroundColor(const char* input) {
     if (input && input[0] != '\0') {
         backGroundColor = mapInputToColor(input);
     }
+}
+
+void clear() {
+    clearScreen();
+    setCursorPosition(2, 0);
+    keyboard_cursor_position = 2 * VGA_COLS;
 }

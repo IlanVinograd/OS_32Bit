@@ -1,4 +1,5 @@
 #include "../Includes/keyboard.h"
+#include "../Includes/shell.h"
 
 uint16_t keyboard_cursor_position = VGA_COLS;
 extern uint16_t CursorPosition;
@@ -186,20 +187,19 @@ void handle_enter() {
     // end test temp
 
     // Move cursor to the next line
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") != 0) {
-        row++;
-        if (row >= VGA_ROWS) {
-            // Scroll again if we're still at the last row
-            scroll_screen();
-            row = VGA_ROWS - 1;
-        }
-        keyboard_cursor_position = row * VGA_COLS;
+    row++;
+    if (row >= VGA_ROWS) {
+        // Scroll again if we're still at the last row
+        scroll_screen();
+        row = VGA_ROWS - 1;
+    }
+    keyboard_cursor_position = row * VGA_COLS;
 
-        setCursorPosition(row, 0);
-    }else {
-        clearScreen();
-        keyboard_cursor_position = 2 * VGA_COLS;
-        setCursorPosition(2, 0);
+    setCursorPosition(row, 0);
+
+    // Check 'clear' command
+    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") == 0) {
+        clear();
     }
 
     // Reset input buffer to default size
