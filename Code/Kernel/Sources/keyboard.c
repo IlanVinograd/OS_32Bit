@@ -186,15 +186,21 @@ void handle_enter() {
     // end test temp
 
     // Move cursor to the next line
-    row++;
-    if (row >= VGA_ROWS) {
-        // Scroll again if we're still at the last row
-        scroll_screen();
-        row = VGA_ROWS - 1;
-    }
-    keyboard_cursor_position = row * VGA_COLS;
+    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") != 0) {
+        row++;
+        if (row >= VGA_ROWS) {
+            // Scroll again if we're still at the last row
+            scroll_screen();
+            row = VGA_ROWS - 1;
+        }
+        keyboard_cursor_position = row * VGA_COLS;
 
-    setCursorPosition(row, 0);
+        setCursorPosition(row, 0);
+    }else {
+        clearScreen();
+        keyboard_cursor_position = 2 * VGA_COLS;
+        setCursorPosition(2, 0);
+    }
 
     // Reset input buffer to default size
     free(inputBuffer); // Free the current buffer
