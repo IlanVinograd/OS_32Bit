@@ -5,5 +5,6 @@
 
 void scrollIfNeeded(int row);
 void handleBackgroundColor(const char* input);
+void clear();
 
 #endif

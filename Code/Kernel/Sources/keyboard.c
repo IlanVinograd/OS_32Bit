@@ -196,6 +196,11 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
+    // Check 'clear' command
+    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") == 0) {
+        clear();
+    }
+
     // Reset input buffer to default size
     free(inputBuffer); // Free the current buffer
     inputBufferSize = 256; // Reset the buffer size
