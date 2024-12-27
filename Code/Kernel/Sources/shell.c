@@ -23,3 +23,17 @@ void clear() {
     setCursorPosition(2, 0);
     keyboard_cursor_position = 2 * VGA_COLS;
 }
+
+ParsedCommand parseCommand(char* input) {
+    ParsedCommand parsedCommand;
+    parsedCommand.command = strtok(input, " ");
+    parsedCommand.arg_count = 0;
+
+    char* arg = strtok(NULL, " ");
+    while (arg && parsedCommand.arg_count < 10) {
+        parsedCommand.arguments[parsedCommand.arg_count++] = arg;
+        arg = strtok(NULL, " ");
+    }
+
+    return parsedCommand;
+}

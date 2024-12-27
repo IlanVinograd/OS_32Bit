@@ -179,8 +179,11 @@ void handle_enter() {
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
+    // Parse input command
+    ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
+
     //test temp
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"test") == 0) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
         create_task((uintptr_t)test);
     }
     // end test temp
@@ -197,7 +200,7 @@ void handle_enter() {
     setCursorPosition(row, 0);
 
     // Check 'clear' command
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") == 0) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
         clear();
     }
 
