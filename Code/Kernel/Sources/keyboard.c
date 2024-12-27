@@ -199,9 +199,15 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
+    // Recognize and process free command
+    if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
+        handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
+    }
+
     // Check 'clear' command
     if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
         clear();
+        scroll_screen();
     }
 
     // Reset input buffer to default size
