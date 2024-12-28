@@ -182,12 +182,6 @@ void handle_enter() {
     // Parse input command
     ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
-    //test temp
-    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
-        create_task((uintptr_t)test);
-    }
-    // end test temp
-
     // Move cursor to the next line
     row++;
     if (row >= VGA_ROWS) {
@@ -198,6 +192,20 @@ void handle_enter() {
     keyboard_cursor_position = row * VGA_COLS;
 
     setCursorPosition(row, 0);
+
+    //test temp
+    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
+            // Allocate all memory
+            test_full_allocation();
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
+            // Create fragmentation
+            test_fragmentation();
+        } else {
+            create_task((uintptr_t)test);
+        }
+    }
+    // end test temp
 
     // Recognize and process free command
     if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {

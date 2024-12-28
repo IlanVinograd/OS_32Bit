@@ -51,11 +51,8 @@ void handleFreeCommand(int arg_count, char* arguments[]) {
         scrollIfNeeded(row);
         printf("Total Memory  |", COLOR_BLACK_ON_WHITE);
         for (uint32_t i = 0; i < 20; i++) {
-            if (i < (usedMemory * 20 / totalMemory)) {
-                printf("I", COLOR_BLACK_ON_WHITE);
-            } else {
-                printf("-", COLOR_BLACK_ON_WHITE);
-            }
+            // Total memory is always full
+            printf("I", COLOR_BLACK_ON_WHITE);
         }
         printf("|\n", COLOR_BLACK_ON_WHITE);
         ++row;
