@@ -179,11 +179,8 @@ void handle_enter() {
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
-    //test temp
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"test") == 0) {
-        create_task((uintptr_t)test);
-    }
-    // end test temp
+    // Parse input command
+    ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
     // Move cursor to the next line
     row++;
@@ -196,9 +193,29 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
+    //test temp
+    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
+            // Allocate all memory
+            test_full_allocation();
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
+            // Create fragmentation
+            test_fragmentation();
+        } else {
+            create_task((uintptr_t)test);
+        }
+    }
+    // end test temp
+
+    // Recognize and process free command
+    if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
+        handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
+    }
+
     // Check 'clear' command
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"clear") == 0) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
         clear();
+        scroll_screen();
     }
 
     // Reset input buffer to default size

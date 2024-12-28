@@ -1,5 +1,6 @@
 #include "../Includes/test.h"
 extern TextStyle backGroundColor;
+extern uint16_t keyboard_cursor_position;
 
 void delay(uint32_t count) {
     while (count--) {
@@ -88,6 +89,9 @@ void test_bitmap() {
     } else {
         printf("Error: Failed to allocate block of 3 pages\n", RED_ON_BLACK_WARNING);
     }
+
+    test_full_allocation();
+    test_fragmentation();
 }
 
 void test_isr0(){
@@ -178,4 +182,41 @@ void test() {
     // Set current task state to TERMINATED to indicate it is finished.
     set_task_state(current, TERMINATED);
     yield(); // Hand over control to the scheduler.
+}
+
+void test_full_allocation() {
+    printf("Testing full memory allocation...\n", GREEN_ON_BLACK_SUCCESS);
+    // Allocate all memory
+    while (malloc(1024 * 1024)) {
+
+    }
+    printf("Full memory allocation test completed.\n", GREEN_ON_BLACK_SUCCESS);
+}
+
+void test_fragmentation() {
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+
+    scrollIfNeeded(row);
+    printf("Testing memory fragmentation...\n", GREEN_ON_BLACK_SUCCESS);
+    ++row;
+    scrollIfNeeded(row);
+
+    void *ptrs[2];
+    for (int i = 0; i < 2; i++) {
+        ptrs[i] = malloc(512 * 1024);
+    }
+    for (int i = 0; i < 2; i++) {
+        free(ptrs[i]);
+    }
+    for (int i = 0; i < 2; i++) {
+        ptrs[i] = malloc(256 * 1024);
+    }
+
+    scrollIfNeeded(row);
+    printf("Memory fragmentation test completed.\n", GREEN_ON_BLACK_SUCCESS);
+    ++row;
+    scrollIfNeeded(row);
+
+    setCursorPosition(row, 0);
+    keyboard_cursor_position = row * VGA_COLS;
 }
