@@ -84,6 +84,20 @@ void handleFreeCommand(int arg_count, char* arguments[]) {
         printf("|\n", COLOR_BLACK_ON_WHITE);
         ++row;
         scrollIfNeeded(row);
+    } else if (arg_count > 0 && strcmp(arguments[0], "--kibi") == 0) {
+        // Display memory usage in KiB
+        scrollIfNeeded(row);
+        printf("Total Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, totalMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Used Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, usedMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Free Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, freeMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
     } else {
         // Display memory usage in MB
         scrollIfNeeded(row);
