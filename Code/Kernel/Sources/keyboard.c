@@ -207,6 +207,29 @@ void handle_enter() {
     }
     // end test temp
 
+    if (parsedCommand.command && strcmp(parsedCommand.command, "read") == 0) {
+        printf("Start reading from slave drive!\n", RED_ON_BLACK_WARNING);
+        uint8_t buffer[ATA_SECTOR_SIZE];
+
+        // Clear the buffer before reading
+        memset(buffer, 0, ATA_SECTOR_SIZE);
+
+        // Identify the slave device to ensure it is present
+        ata_identify(ATA_PRIMARY_IO, ATA_SLAVE);
+
+        // Read the first sector from the primary slave device
+        ata_read(ATA_PRIMARY_IO, ATA_SLAVE, 0, 1, buffer);
+
+        printf("Data read (first 16 bytes):\n", RED_ON_BLACK_WARNING);
+        for (int i = 0; i < 16; i++) {
+            printf("0x%02X ", COLOR_BLACK_ON_WHITE, buffer[i]);
+        }
+        printf("\n", RED_ON_BLACK_WARNING);
+
+        printf("Read Complete!\n", RED_ON_BLACK_WARNING);
+    }
+
+
     // Recognize and process free command
     if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
         handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);

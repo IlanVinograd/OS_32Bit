@@ -1,5 +1,4 @@
 #include "../Includes/time.h"
-#include <PIT.h>
 
 static uint64_t system_time = 0; // System time in milliseconds
 static RTC_Time last_rtc_time;
