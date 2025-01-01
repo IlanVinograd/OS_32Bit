@@ -1,7 +1,7 @@
 # Overview Version 0.7
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
-![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
+![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/GIF_TEST.gif)
 
 ## Core Components:
 - Kernel Entry
