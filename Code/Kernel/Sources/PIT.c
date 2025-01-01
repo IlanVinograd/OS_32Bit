@@ -36,7 +36,7 @@ void pit_handler(void) { // each 10ms will be interrupt.
     printf(" )", COLOR_BLUE_ON_WHITE);
 
     setCursorPosition(1, 0);
-    printf(" [   %02d / %02d / %02d ] ", COLOR_BLUE_ON_WHITE, current_time.hour + UTS, current_time.minute, current_time.second);
+    printf(" [   %02d / %02d / %02d ] ", COLOR_BLUE_ON_WHITE, (current_time.hour + UTS) % 24, current_time.minute, current_time.second);
     printf("Ticks: ", COLOR_BLUE_ON_WHITE);
     printf("%33d       ", COLOR_BLUE_ON_LIGHT_BROWN, tick_count);
 
