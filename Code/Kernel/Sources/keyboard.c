@@ -3,6 +3,7 @@
 uint16_t keyboard_cursor_position = VGA_COLS;
 extern uint16_t CursorPosition;
 bool_t shift_pressed = false;
+extern bool_t cube_active;
 
 char* inputBuffer;
 uint32_t inputBufferIndex = 0;
@@ -193,7 +194,6 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
-    //test temp
     if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
             // Allocate all memory
@@ -205,7 +205,20 @@ void handle_enter() {
             create_task((uintptr_t)test);
         }
     }
-    // end test temp
+    
+    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
+            if (!cube_active) {
+                cube_active = true;
+                create_task((uintptr_t)handleCubeCommand);
+            } 
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
+            if (cube_active) {
+                cube_active = false;
+            }
+        }
+    }
+
 
     if (parsedCommand.command && strcmp(parsedCommand.command, "read") == 0) {
         printf("Start reading from slave drive!\n", RED_ON_BLACK_WARNING);

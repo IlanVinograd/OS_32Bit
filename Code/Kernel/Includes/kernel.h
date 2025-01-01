@@ -6,6 +6,8 @@
 #define KERNEL_OFFSET_DIFF (KERNEL_HIGH_BASE - KERNEL_LOW_BASE)
 #define DELAY_CURSOR_SIGNAL 50
 
+#include <math.h>
+#include <render.h>
 #include <ata.h>
 #include <shell.h>
 #include <time.h>

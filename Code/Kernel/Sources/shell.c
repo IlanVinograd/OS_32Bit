@@ -2,6 +2,8 @@
 
 extern TextStyle backGroundColor;
 extern uint16_t keyboard_cursor_position;
+extern float A , B, C;
+bool_t cube_active = false;
 
 void scrollIfNeeded(int row) {
     if (row >= VGA_ROWS) {
@@ -113,4 +115,17 @@ void handleFreeCommand(int arg_count, char* arguments[]) {
 
     // Move the cursor down three lines
     setCursorPosition(row, 0);
+}
+
+void handleCubeCommand() {
+    while (cube_active) {
+        renderCube();
+        A += 0.13;
+        B += 0.06;
+        C += 0.09;
+        yield();
+    }
+    set_task_state(current, TERMINATED);
+    clear();
+    yield();
 }
