@@ -36,7 +36,7 @@ void initial_jobs() {
 
     create_task((uintptr_t)cursor_signal);
     create_task((uintptr_t)rtc_sync_task);
-    
+
     while (true) {
         yield(); // Keep yielding to allow other tasks to run
     }
@@ -67,11 +67,13 @@ void _start(void) {
     init_free_list();
     initScreen("0.7");
     enable_keyboard();
+    ata_initialize(ATA_SECONDARY_IO, ATA_MASTER);
 
-    // Create the initial task for keyboard testing
+    // Initialize the scheduler and enable interrupts
     init_scheduler();
     __asm__("sti");
 
+    // Start the initial jobs task
     create_task((uintptr_t)initial_jobs);
     task_main(); // Do main task. task_main will not return
 }

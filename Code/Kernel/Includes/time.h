@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <io.h>
+#include <PIT.h>
 
 // CMOS I/O ports
 #define CMOS_ADDRESS 0x70

@@ -1,5 +1,4 @@
 #include "../Includes/time.h"
-#include <PIT.h>
 
 static uint64_t system_time = 0; // System time in milliseconds
 static RTC_Time last_rtc_time;
@@ -69,7 +68,7 @@ void synchronize_rtc_with_system_time(void) {
     RTC_Time current_time;
     read_rtc(&current_time);
 
-    // Calculate system time based on the RTC time (simplified for demo purposes)
+    // Calculate system time based on the RTC time
     system_time = (uint64_t)current_time.hour * 3600000 +
                   (uint64_t)current_time.minute * 60000 +
                   (uint64_t)current_time.second * 1000;
