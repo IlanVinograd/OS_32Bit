@@ -3,6 +3,7 @@
 uint16_t keyboard_cursor_position = VGA_COLS;
 extern uint16_t CursorPosition;
 bool_t shift_pressed = false;
+extern bool_t cube_active;
 
 char* inputBuffer;
 uint32_t inputBufferIndex = 0;
@@ -179,11 +180,8 @@ void handle_enter() {
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
-    //test temp
-    if (strcmp((uint8_t*)inputBuffer, (uint8_t*)"test") == 0) {
-        create_task((uintptr_t)test);
-    }
-    // end test temp
+    // Parse input command
+    ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
     // Move cursor to the next line
     row++;
@@ -195,6 +193,66 @@ void handle_enter() {
     keyboard_cursor_position = row * VGA_COLS;
 
     setCursorPosition(row, 0);
+
+    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
+            // Allocate all memory
+            test_full_allocation();
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
+            // Create fragmentation
+            test_fragmentation();
+        } else {
+            create_task((uintptr_t)test);
+        }
+    }
+    
+    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
+            if (!cube_active) {
+                cube_active = true;
+                create_task((uintptr_t)handleCubeCommand);
+            } 
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
+            if (cube_active) {
+                cube_active = false;
+            }
+        }
+    }
+
+
+    if (parsedCommand.command && strcmp(parsedCommand.command, "read") == 0) {
+        printf("Start reading from slave drive!\n", RED_ON_BLACK_WARNING);
+        uint8_t buffer[ATA_SECTOR_SIZE];
+
+        // Clear the buffer before reading
+        memset(buffer, 0, ATA_SECTOR_SIZE);
+
+        // Identify the slave device to ensure it is present
+        ata_identify(ATA_PRIMARY_IO, ATA_SLAVE);
+
+        // Read the first sector from the primary slave device
+        ata_read(ATA_PRIMARY_IO, ATA_SLAVE, 0, 1, buffer);
+
+        printf("Data read (first 16 bytes):\n", RED_ON_BLACK_WARNING);
+        for (int i = 0; i < 16; i++) {
+            printf("0x%02X ", COLOR_BLACK_ON_WHITE, buffer[i]);
+        }
+        printf("\n", RED_ON_BLACK_WARNING);
+
+        printf("Read Complete!\n", RED_ON_BLACK_WARNING);
+    }
+
+
+    // Recognize and process free command
+    if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
+        handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
+    }
+
+    // Check 'clear' command
+    if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
+        clear();
+        scroll_screen();
+    }
 
     // Reset input buffer to default size
     free(inputBuffer); // Free the current buffer

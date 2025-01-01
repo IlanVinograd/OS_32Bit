@@ -17,6 +17,8 @@
         "scheduler.h": "c",
         "pcb.h": "c",
         "string.h": "c",
-        "pic.h": "c"
+        "pic.h": "c",
+        "render.h": "c",
+        "shell.h": "c"
     }
 }
