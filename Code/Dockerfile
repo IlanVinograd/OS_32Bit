@@ -46,4 +46,4 @@ WORKDIR /usr/src/bootloader
 COPY . /usr/src/bootloader
 
 # Compile and run the bootloader and kernel, with GUI enabled and 512MB of memory
-CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -drive file=fat32_disk.img,format=raw -m 512M -display gtk"]
+CMD ["sh", "-c", "make clean && make output && qemu-system-x86_64 -drive format=raw,file=bootloader.img -m 512M -display gtk"]
