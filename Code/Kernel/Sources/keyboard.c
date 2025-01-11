@@ -11,6 +11,7 @@ uint32_t inputBufferSize = 256;
 
 extern TextStyle backGroundColor;
 extern SuperBlock SP;
+extern unsigned short FAT;
 
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);
@@ -176,7 +177,7 @@ void handle_enter() {
     // Clear the blinking cursor before processing
     setCursorPosition(row, col);
     putc(' ', COLOR_BLACK_ON_WHITE);
-
+    
     // Shell Functions
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
@@ -222,10 +223,25 @@ void handle_enter() {
 
     if (parsedCommand.command && strcmp(parsedCommand.command, "fs") == 0) { // Do this ONLY if needed.
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--init") == 0) {
-            printf("Start",RED_ON_BLACK_WARNING);
             init_fs();
         }
     }
+
+    if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
+    if (parsedCommand.arg_count > 0) {
+        create_file(parsedCommand.arguments[0]);
+    } else {
+        printf("Usage: touch <filename>\n", backGroundColor);
+
+        row += 1;
+        if (row >= VGA_ROWS) {
+            scroll_screen();
+            row = VGA_ROWS - 1;
+        }
+        keyboard_cursor_position = row * VGA_COLS;
+        setCursorPosition(row, 0);
+    }
+}
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {
@@ -248,7 +264,7 @@ void handle_enter() {
         }
         printf("\nRead Complete!\n", RED_ON_BLACK_WARNING);
     }
-*/
+
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"write") == 0) {
         uint8_t buffer[ATA_SECTOR_SIZE];
         for (int i = 0; i < ATA_SECTOR_SIZE; i++) {
@@ -262,7 +278,7 @@ void handle_enter() {
 
         printf("Write operation completed!\n", RED_ON_BLACK_WARNING);
     }
-
+*/
     // Recognize and process free command
     if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
         handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);

@@ -1,30 +1,29 @@
 #include "../Includes/file_system.h"
 
-SuperBlock SP;
+SuperBlock SB;
+unsigned short FAT[MAX_FAT_ENTRIES] = {0};
 
 void init_fs() {
-    printf("\nbegin",RED_ON_BLACK_WARNING);
-    SuperBlock SP;
-    SP.total_sectors = 8192;
-    SP.sectors_per_cluster = 8;
-    SP.bytes_per_sector = 512;
-    SP.available_sectors = 8192;
-    SP.total_direntries = 256;
-    SP.available_direntries = 256;
-    SP.fs_type = 0xFA;
-    memset(SP.reserved, 0, sizeof(SP.reserved)); // Reserved bytes set to 0
-    strncpy(SP.label, (const uint8_t *)"SFAT", sizeof(SP.label));
-    
-    // Convert the SuperBlock structure to a buffer for writing
     uint8_t buffer[512] = {0};
-    memcpy(buffer, &SP, sizeof(SuperBlock));
 
-    // Write the SuperBlock to disk at the filesystem start
-    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
-    ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_FS, 1, buffer);
-    printf("\nFinished",RED_ON_BLACK_WARNING);
+    // Read the SuperBlock from disk at the filesystem start
+    ata_identify(ATA_PRIMARY_IO, ATA_SLAVE);
+    ata_read(ATA_PRIMARY_IO, ATA_SLAVE, START_FS, 1, buffer);
+
+    // Populate the SuperBlock structure from the buffer
+    memcpy(&SB, buffer, sizeof(SuperBlock));
+
+    printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
+    printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
+    printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
+    printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
+    printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
+    printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
 }
 
-void creat_file() {
-
+void create_file(const char* filename) {
+    if (strlen(filename) > 10) {
+        printf("Error: Filename too long. Maximum length is 10 characters.\n",RED_ON_BLACK_WARNING);
+        return;
+    }
 }

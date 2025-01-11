@@ -68,6 +68,7 @@ void _start(void) {
     initScreen("0.7");
     enable_keyboard();
     ata_initialize(ATA_PRIMARY_IO, ATA_SLAVE);
+    init_fs();
 
     // Initialize the scheduler and enable interrupts
     init_scheduler();

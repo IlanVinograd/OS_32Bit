@@ -44,8 +44,11 @@ QEMU_IMG := qemu-img
 DD := dd
 NASM := nasm -g
 
+# Python script for embedding the SuperBlock
+EMBED_SCRIPT := embed_superblock.py
+
 # Always clean before building
-output: clean $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(IMG)
+output: $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN) $(IMG)
 
 # Ensure that necessary directories exist
 $(OBJECTS):
@@ -76,17 +79,15 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC)
 
 # Assemble Task ASM code
 $(TASK_ASM_OBJ): $(TASK_ASM_SRC)
-	@echo "Assembling IDT ASM code..."
+	@echo "Assembling Task ASM code..."
 	$(NASM) -f elf32 $(TASK_ASM_SRC) -o $(TASK_ASM_OBJ)
 
-# Linking Kernel to an ELF executable..."
-
+# Linking Kernel to an ELF executable
 $(KERNEL_ELF): $(OBJECTS) $(BINS) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ) $(LINKER_SCRIPT)
 	@echo "Linking Kernel to an ELF executable..."
 	i686-elf-ld -o $(KERNEL_ELF) -T $(LINKER_SCRIPT) $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_ASM_OBJ) $(TASK_ASM_OBJ)
 
-
-# Creating a binary version of the Kernel ELF file..."
+# Creating a binary version of the Kernel ELF file
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@echo "Creating a binary version of the Kernel ELF file..."
 	i686-elf-objcopy -O binary $< $@
@@ -101,19 +102,32 @@ $(OBJECTS)/%.o: $(SOURCES)/%.s
 	@echo "Assembling $<..."
 	i686-elf-gcc $(CFLAGS) -c $< -o $@
 
-# Create bootloader.img
+# Create bootloader.img only if it doesn't already exist
 $(IMG): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
-	@echo "Creating bootloader.img..."
-	$(QEMU_IMG) create -f raw "$(IMG)" 10M
-	$(DD) if=$(STAGE1_BIN) of=$(IMG) bs=512 count=1 conv=notrunc
-	$(DD) if=$(STAGE2_BIN) of=$(IMG) bs=512 seek=1 conv=notrunc
-	$(DD) if=$(KERNEL_BIN) of=$(IMG) bs=512 seek=2 conv=notrunc
+	@if [ ! -f "$(IMG)" ]; then \
+	    echo "Creating bootloader.img..."; \
+	    $(QEMU_IMG) create -f raw "$(IMG)" 10M; \
+	    $(DD) if=$(STAGE1_BIN) of=$(IMG) bs=512 count=1 conv=notrunc; \
+	    $(DD) if=$(STAGE2_BIN) of=$(IMG) bs=512 seek=1 conv=notrunc; \
+	    $(DD) if=$(KERNEL_BIN) of=$(IMG) bs=512 seek=2 conv=notrunc; \
+	else \
+	    echo "bootloader.img already exists, skipping creation..."; \
+	fi
 
-# Clean up all the generated files
+# Embed SuperBlock into bootloader.img if necessary
+embed_superblock: $(IMG)
+	@echo "Embedding SuperBlock into bootloader.img..."
+	python3 $(EMBED_SCRIPT)
+
+# Clean up all the generated files except bootloader.img
 clean:
 	@echo "Cleaning up..."
-	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(KERNEL_BIN)" "$(KERNEL_ELF)" "$(IMG)" \
+	rm -f "$(STAGE1_BIN)" "$(STAGE2_BIN)" "$(KERNEL_BIN)" "$(KERNEL_ELF)" \
 	      $(C_OBJECTS) $(ASM_OBJECTS) $(IDT_C_OBJ) $(IDT_ASM_OBJ)
 
+clean_all: clean
+	@echo "Removing bootloader.img..."
+	rm -f "$(IMG)"
+
 # Phony targets
-.PHONY: clean output
+.PHONY: clean clean_all output embed_superblock

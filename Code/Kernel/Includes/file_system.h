@@ -8,6 +8,7 @@
 #define OFFSET_BEGIN 0x10000
 #define SECTOR 512
 #define START_FS (OFFSET_BEGIN / SECTOR) // Here the file system start, it's like offset.
+#define MAX_FAT_ENTRIES 8192
 
 typedef struct SuperBlock // 32 byte
 {
@@ -30,6 +31,6 @@ typedef struct DirEntry // 16 byte
 } DirEntry;
 
 void init_fs();
-void creat_file();
+void create_file();
 
 #endif /* _FILE_SYSTEM_ */
