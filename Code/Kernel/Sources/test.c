@@ -132,6 +132,9 @@ void task1_entry() {
         setCursorPosition(10, 0);
         printf("Loop count 1 -> %d", backGroundColor, count);
          __asm__ ("sti"); // Re-enable interrupts after modification
+        if (i % 10 == 0) {
+            yield(); // Yield control to another task.
+        }
     }
 
      __asm__ ("cli"); // Disable interrupts before critical section
@@ -156,7 +159,7 @@ void task2_entry() {
         printf("Loop count 2 -> %d", backGroundColor, count);
          __asm__ ("sti"); // Re-enable interrupts after modification
 
-        if (i % 1000 == 0) {
+        if (i % 10 == 0) {
             yield(); // Yield control to another task.
         }
     }

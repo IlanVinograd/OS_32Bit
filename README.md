@@ -59,41 +59,19 @@ cd ..
   ```
   docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
   ```
-## Cleaning Up Containers
-- You can stop and remove all running and stopped containers using the commands below.
-- **NOTE:**
-  Always clean the containers to free up resources!
 
-  **CMD**
-  ```
-  for /f "tokens=*" %i in ('docker ps -q') do docker stop %i
-  for /f "tokens=*" %i in ('docker ps -a -q') do docker rm %i
-  ```
+### Rebuilding the File System (IF IT IS BROKEN OR TO RESET FS)
+- If you need to reset the file system (rebuild the bootloader image and embed the file system), use the following commands:
 
-  **OR**
+**CMD**
+```
+docker run --rm -e DISPLAY=host.docker.internal:0.0 -v %cd%\Code:/usr/src/bootloader os_32bit sh -c "make clean_all && make output && make embed_superblock && qemu-system-x86_64 -drive format=raw,file=bootloader.img -m 512M -display gtk"
+```
 
-  **Powershell**
-  ```
-  docker stop $(docker ps -q) ; docker rm $(docker ps -a -q)
-  ```
-
-## Important Note: Save and Run
-
-- After making changes to your code, **always save your changes** before testing.
-- To test the updated code, **you must run the `docker run` command** again to start a new container with the latest changes.
-
-
-  **CMD**
-  ```
-  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v %cd%\Code:/usr/src/bootloader os_32bit
-  ```
-
-  **OR**
-
-  **Powershell**
-  ```
-  docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
-  ```
+**Poweershell**
+```
+docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit sh -c "make clean_all && make output && make embed_superblock && qemu-system-x86_64 -drive format=raw,file=bootloader.img -m 512M -display gtk"
+```
 
 # Documentation
 Comprehensive documentation is provided to help you understand the core concepts and contribute to the project effectively.

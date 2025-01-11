@@ -14,5 +14,7 @@ void test_isr6();
 void test_isr13();
 void test_isr14();
 void test();
+void test_full_allocation(void);
+void test_fragmentation(void);
 
 #endif /* _TEST_H_ */

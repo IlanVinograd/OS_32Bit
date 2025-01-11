@@ -5,6 +5,8 @@
 #include <vga.h>
 #include <shell.h>
 #include <ata.h>
+#include <file_system.h>
+#include <string.h>
 
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
