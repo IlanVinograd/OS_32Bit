@@ -60,7 +60,7 @@ cd ..
   docker run --rm -e DISPLAY=host.docker.internal:0.0 -v "$(Get-Location)/Code:/usr/src/bootloader" os_32bit
   ```
 
-### Rebuilding the File System (IF IT IS BROKEN OR TO RESET FS)
+### Restoring or Resetting the File System (In Case of Corruption or to Start Fresh)
 - If you need to reset the file system (rebuild the bootloader image and embed the file system), use the following commands:
 
 **CMD**
