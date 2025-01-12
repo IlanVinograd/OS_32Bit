@@ -1,7 +1,7 @@
 #include "../Includes/file_system.h"
 
 SuperBlock SB;
-bool_t dir[MAX_DIR] =  {false};
+bool_t dir[MAX_DIR - 1] =  {false};
 
 void init_fs() {
     uint8_t buffer[SECTOR_SIZE] = {0};
