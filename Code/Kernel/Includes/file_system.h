@@ -6,9 +6,11 @@
 #include <string.h>
 
 #define OFFSET_BEGIN 0x10000
-#define SECTOR 512
-#define START_FS (OFFSET_BEGIN / SECTOR) // Here the file system start, it's like offset.
-#define MAX_FAT_ENTRIES 8192
+#define SECTOR_SIZE 512
+#define START_FS (OFFSET_BEGIN / SECTOR_SIZE) // Here the file system start, it's like offset.
+#define START_DIR ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the file system start, it's like offset.
+#define MAX_SECTORS 8192
+#define MAX_DIR 256
 
 typedef struct SuperBlock // 32 byte
 {
