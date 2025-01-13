@@ -229,9 +229,8 @@ void handle_enter() {
     
     if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
         if (parsedCommand.arg_count == 1) {
-            __asm__ ("cli");
             create_file(parsedCommand.arguments[0]);
-            __asm__ ("sti");
+            
         } else {
             printf("Usage: touch <filename>\n", backGroundColor);
 

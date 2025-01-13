@@ -92,7 +92,7 @@ bool_t updateDir(char* filename) {
     uint8_t dir_buffer[MAX_DIR * 16] = {0};
     
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
-    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, 1, dir_buffer);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
     
     // Copy the DirEntry struct into the directory buffer at the correct position
     memcpy(&dir_buffer[pos * 16], &entry, sizeof(DirEntry));
