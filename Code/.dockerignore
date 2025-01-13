@@ -18,7 +18,6 @@
 *.vdi
 *.vmdk
 *.vpc
-*.log
 
 # Ignore backup files
 *.bak
