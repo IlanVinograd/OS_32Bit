@@ -33,7 +33,7 @@ typedef struct DirEntry // 16 byte
 } DirEntry;
 
 void init_fs();
-void create_file();
+void create_file(char* filename);
 
 bool_t updateSB();
 bool_t updateDir(char* filename);
