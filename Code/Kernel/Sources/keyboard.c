@@ -226,22 +226,24 @@ void handle_enter() {
             init_fs();
         }
     }
-
+    
     if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
-    if (parsedCommand.arg_count > 0) {
-        create_file(parsedCommand.arguments[0]);
-    } else {
-        printf("Usage: touch <filename>\n", backGroundColor);
+        if (parsedCommand.arg_count == 1) {
+            __asm__ ("cli");
+            create_file(parsedCommand.arguments[0]);
+            __asm__ ("sti");
+        } else {
+            printf("Usage: touch <filename>\n", backGroundColor);
 
-        row += 1;
-        if (row >= VGA_ROWS) {
-            scroll_screen();
-            row = VGA_ROWS - 1;
+            row += 1;
+            if (row >= VGA_ROWS) {
+                scroll_screen();
+                row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = row * VGA_COLS;
+            setCursorPosition(row, 0);
         }
-        keyboard_cursor_position = row * VGA_COLS;
-        setCursorPosition(row, 0);
     }
-}
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {

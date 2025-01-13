@@ -11,6 +11,7 @@
 #define KEYBOARD_DATA_PORT 0x60
 #define KEYBOARD_STATUS_PORT 0x64
 #define INPUT_BUFFER_SIZE 256
+#define MAX_DATA_SIZE 4096
 
 void handle_keyboard_input();
 int8_t scancode_to_ascii(uint8_t scancode);

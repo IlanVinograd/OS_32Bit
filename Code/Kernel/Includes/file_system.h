@@ -35,4 +35,12 @@ typedef struct DirEntry // 16 byte
 void init_fs();
 void create_file();
 
+bool_t updateSB();
+bool_t updateDir(char* filename);
+
+bool_t isAvaDir();
+bool_t isAvaSec(uint32_t sectors);
+void updateDirAndSec(uint32_t sectors);
+
+
 #endif /* _FILE_SYSTEM_ */

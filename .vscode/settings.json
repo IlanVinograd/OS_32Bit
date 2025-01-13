@@ -21,5 +21,6 @@
         "render.h": "c",
         "shell.h": "c",
         "file_system.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
