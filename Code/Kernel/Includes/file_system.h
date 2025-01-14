@@ -6,11 +6,15 @@
 #include <string.h>
 
 #define OFFSET_BEGIN 0x10000
-#define SECTOR_SIZE 512
+
 #define START_FS (OFFSET_BEGIN / SECTOR_SIZE) // Here the file system start, it's like offset.
-#define START_DIR ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the file system start, it's like offset.
+#define START_DIR ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the dir entries system start, it's like offset.
+#define START_FAT ((OFFSET_BEGIN + 0x01200) / 512) // Here the FAT start, it's like offset.
+
+#define SECTOR_SIZE 512
 #define MAX_SECTORS 8192
 #define MAX_DIR 256
+#define FAT ((MAX_SECTORS / 8) * 2) // the is 8 sector per cluster, and * 2 cause we use one byte and not 2 bytes so we * by 2.
 
 typedef struct SuperBlock // 32 byte
 {
@@ -37,6 +41,7 @@ void create_file(char* filename);
 
 bool_t updateSB();
 bool_t updateDir(char* filename);
+bool_t updateFat();
 
 bool_t isAvaDir();
 bool_t isAvaSec(uint32_t sectors);

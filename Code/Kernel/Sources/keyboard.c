@@ -11,7 +11,6 @@ uint32_t inputBufferSize = 256;
 
 extern TextStyle backGroundColor;
 extern SuperBlock SP;
-extern unsigned short FAT;
 
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);

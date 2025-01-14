@@ -2,6 +2,7 @@
 
 SuperBlock SB;
 bool_t dir[MAX_DIR - 1] =  {false};
+int posFat;
 
 void init_fs() {
     uint8_t buffer[SECTOR_SIZE] = {0};
@@ -47,6 +48,11 @@ void create_file(char* filename) {
         printf("Error: updateDir.\n", RED_ON_BLACK_WARNING);
         return;
     }
+
+    if(!updateFat()) {
+        printf("Error: updateFat.\n", RED_ON_BLACK_WARNING);
+        return;
+    }
 }
 
 bool_t updateSB() {
@@ -70,19 +76,19 @@ bool_t updateDir(char* filename) {
     entry.name[sizeof(entry.name) - 1] = '\0';
     entry.size = 0;
 
-    int pos = -1;
+    posFat = -1;
 
     // Find the first available directory slot
     for (int i = 0; i < MAX_DIR; i++) {
         if (dir[i] == 0) { // Check if the directory slot is free
             dir[i] = 1;    // Mark it as used
             entry.fat_entry = i; // Set the FAT entry to the index
-            pos = i;       // Record the position
+            posFat = i;       // Record the position
             break;
         }
     }
 
-    if (pos == -1) {
+    if (posFat == -1) {
         printf("Error: No free directory entry found\n", YELLOW_ON_BLACK_CAUTION);
         return false;
     }
@@ -95,11 +101,64 @@ bool_t updateDir(char* filename) {
     ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
     
     // Copy the DirEntry struct into the directory buffer at the correct position
-    memcpy(&dir_buffer[pos * 16], &entry, sizeof(DirEntry));
+    memcpy(&dir_buffer[posFat * 16], &entry, sizeof(DirEntry));
 
     // Write the updated directory entries back to the disk
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
     ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
+
+    return true;
+}
+
+bool_t updateFat() {
+    uint8_t bufferFat[FAT] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
+
+    int clusters_per_file = SB.sectors_per_cluster;
+    int cluster_index = -1;
+    int prev_cluster = -1;
+
+    // Find free clusters in the FAT
+    for (int i = 0; i < MAX_SECTORS; i++) {
+        if (bufferFat[i * 2] == 0x00 && bufferFat[i * 2 + 1] == 0x00) {
+            if (cluster_index == -1) {
+                cluster_index = i;
+            }
+
+            if (prev_cluster != -1) {
+                bufferFat[prev_cluster * 2] = (i & 0xFF00) >> 8;
+                bufferFat[prev_cluster * 2 + 1] = i & 0xFF;
+            }
+
+            prev_cluster = i;
+            clusters_per_file--;
+
+            if (clusters_per_file == 0) {
+                bufferFat[i * 2] = 0xFF;
+                bufferFat[i * 2 + 1] = 0xFF;
+                break;
+            }
+        }
+    }
+
+    if (clusters_per_file > 0) {
+        printf("Error: Not enough free clusters available\n", YELLOW_ON_BLACK_CAUTION);
+        return false;
+    }
+
+    if (posFat != -1) {
+        uint8_t dir_buffer[MAX_DIR * 16] = {0};
+        ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
+
+        DirEntry *entry = (DirEntry *)&dir_buffer[posFat * 16];
+        entry->fat_entry = cluster_index;
+
+        ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
+    }
+
+    ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
 
     return true;
 }
