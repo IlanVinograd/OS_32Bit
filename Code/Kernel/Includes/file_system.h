@@ -46,9 +46,13 @@ bool_t updateSB();
 bool_t updateDir(char* filename);
 bool_t updateFat();
 
+bool_t isAvaSec(int32_t sectors);
 bool_t isAvaDir();
-bool_t isAvaSec(uint32_t sectors);
-void updateDirAndSec(uint32_t sectors);
+bool_t removeDir(char* filename);
+bool_t removeFat(char* filename);
 
+void updateDirAndSec(int32_t sectors, int32_t dir);
+
+void nextLine();
 
 #endif /* _FILE_SYSTEM_ */
