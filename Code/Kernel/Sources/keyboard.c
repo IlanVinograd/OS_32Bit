@@ -229,24 +229,6 @@ void handle_enter() {
             init_fs();
         }
     }
-<<<<<<< HEAD
-
-    if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
-    if (parsedCommand.arg_count > 0) {
-        create_file(parsedCommand.arguments[0]);
-    } else {
-        printf("Usage: touch <filename>\n", backGroundColor);
-
-        row += 1;
-        if (row >= VGA_ROWS) {
-            scroll_screen();
-            row = VGA_ROWS - 1;
-        }
-        keyboard_cursor_position = row * VGA_COLS;
-        setCursorPosition(row, 0);
-    }
-}
-=======
     
     if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
         if (parsedCommand.arg_count == 1) {
@@ -264,7 +246,7 @@ void handle_enter() {
             setCursorPosition(row, 0);
         }
     }
-
+    
     if (parsedCommand.command && strcmp(parsedCommand.command, "rm") == 0) {
         if (parsedCommand.arg_count == 1) {
             delete_file(parsedCommand.arguments[0]);
@@ -281,7 +263,6 @@ void handle_enter() {
             setCursorPosition(row, 0);
         }
     }
->>>>>>> feature/target
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {

@@ -25,8 +25,6 @@ static void ata_wait_drq(uint16_t io_base) {
 }
 
 void ata_read(uint16_t io_base, uint8_t drive, uint32_t lba, uint8_t sectors, uint8_t* buffer) {
-<<<<<<< HEAD
-=======
     if (!buffer || sectors == 0) {
         return;
     }
@@ -36,7 +34,6 @@ void ata_read(uint16_t io_base, uint8_t drive, uint32_t lba, uint8_t sectors, ui
     }
 
     // Select drive and LBA
->>>>>>> feature/target
     outPort(io_base + 6, 0xE0 | (drive << 4) | ((lba >> 24) & 0x0F));
     outPort(io_base + 2, sectors);
     outPort(io_base + 3, (uint8_t)(lba));
@@ -46,14 +43,10 @@ void ata_read(uint16_t io_base, uint8_t drive, uint32_t lba, uint8_t sectors, ui
 
     for (uint8_t i = 0; i < sectors; i++) {
         ata_wait_bsy(io_base);
-<<<<<<< HEAD
-        ata_wait_drq(io_base);
-=======
         if (inPort(io_base + 7) & 0x01) { // Check for error
             printf("ATA read error on sector %u.\n",RED_ON_BLACK_WARNING, lba + i);
             return;
         }
->>>>>>> feature/target
 
         ata_wait_drq(io_base);
 
