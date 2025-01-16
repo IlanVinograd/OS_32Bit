@@ -4,11 +4,26 @@
 #include <stdint.h>
 #include <ata.h>
 #include <string.h>
+<<<<<<< HEAD
 
 #define OFFSET_BEGIN 0x10000
 #define SECTOR 512
 #define START_FS (OFFSET_BEGIN / SECTOR) // Here the file system start, it's like offset.
 #define MAX_FAT_ENTRIES 8192
+=======
+#include <vga.h>
+
+#define OFFSET_BEGIN 0x10000
+
+#define START_FS (OFFSET_BEGIN / SECTOR_SIZE) // Here the file system start, it's like offset.
+#define START_DIR ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the dir entries system start, it's like offset.
+#define START_FAT ((OFFSET_BEGIN + 0x01200) / 512) // Here the FAT start, it's like offset.
+
+#define SECTOR_SIZE 512
+#define MAX_SECTORS 8192
+#define MAX_DIR 256
+#define FAT ((MAX_SECTORS / 8) * 2) // the is 8 sector per cluster, and * 2 cause we use one byte and not 2 bytes so we * by 2.
+>>>>>>> feature/target
 
 typedef struct SuperBlock // 32 byte
 {
@@ -31,6 +46,25 @@ typedef struct DirEntry // 16 byte
 } DirEntry;
 
 void init_fs();
+<<<<<<< HEAD
 void create_file();
+=======
+void create_file(char* filename);
+void delete_file(char* filename);
+
+bool_t isCreated(char* filename);
+bool_t updateSB();
+bool_t updateDir(char* filename);
+bool_t updateFat();
+
+bool_t isAvaSec(int32_t sectors);
+bool_t isAvaDir();
+bool_t removeDir(char* filename);
+bool_t removeFat(char* filename);
+
+void updateDirAndSec(int32_t sectors, int32_t dir);
+
+void nextLine();
+>>>>>>> feature/target
 
 #endif /* _FILE_SYSTEM_ */

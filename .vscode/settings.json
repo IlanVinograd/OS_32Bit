@@ -19,7 +19,6 @@
         "string.h": "c",
         "pic.h": "c",
         "render.h": "c",
-        "shell.h": "c",
-        "file_system.h": "c"
+        "shell.h": "c"
     }
 }

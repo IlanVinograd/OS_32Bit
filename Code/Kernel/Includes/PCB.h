@@ -5,7 +5,7 @@
 #include <vga.h>
 
 #define MAX_PIDs 4294967295U
-#define STACK_SIZE 4096
+#define STACK_SIZE 8192
 
 enum State {
   READY = 0,

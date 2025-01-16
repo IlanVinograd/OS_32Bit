@@ -65,7 +65,7 @@ uint8_t *strncat(uint8_t *dest, const uint8_t *src, size_t n){
     return original_dest;
 }
 
-size_t strlen(const uint8_t *str){
+size_t strlen(const char *str){
     size_t count = 0;
 
     while(*str != '\0') {
