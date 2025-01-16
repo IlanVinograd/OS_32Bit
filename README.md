@@ -1,4 +1,4 @@
-# Overview Version 0.7
+# Overview Version 0.9
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
 ![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
@@ -16,6 +16,11 @@
 - Memory Detection
 - Time and Date
 - Test and Debug
+- Keyboard
+- CLI
+- Cube :D
+- ATA
+- File System (SFAT)
 
 # Installation
 This section provides the necessary steps for installing the operating system, including system requirements, installation guides, and booting instructions.
