@@ -11,10 +11,6 @@ uint32_t inputBufferSize = 256;
 
 extern TextStyle backGroundColor;
 extern SuperBlock SP;
-<<<<<<< HEAD
-extern unsigned short FAT;
-=======
->>>>>>> feature/target
 
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);
@@ -246,7 +242,7 @@ void handle_enter() {
             setCursorPosition(row, 0);
         }
     }
-    
+
     if (parsedCommand.command && strcmp(parsedCommand.command, "rm") == 0) {
         if (parsedCommand.arg_count == 1) {
             delete_file(parsedCommand.arguments[0]);
