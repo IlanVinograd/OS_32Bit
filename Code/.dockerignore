@@ -11,7 +11,7 @@
 *.tmp
 
 # Ignore logs
-*.log
+
 
 # Ignore QEMU state files or logs (if any are generated)
 *.qcow2

@@ -70,6 +70,7 @@ void isr14_handler(void) {
     printf("Page Fault Exception!\n", RED_ON_BLACK_WARNING);
     printf("Faulting Address: %p\n",RED_ON_BLACK_WARNING, faulting_address);
     printf("Error Code: 0x%p\n",RED_ON_BLACK_WARNING, error_code);
+    __asm__ ("hlt"); // Usesd for halt the crash.
 }
 
 void irq0_handler(void) {

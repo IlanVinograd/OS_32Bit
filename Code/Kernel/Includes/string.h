@@ -15,7 +15,7 @@ uint8_t *strcat(uint8_t *dest, const uint8_t *src);
 uint8_t *strncat(uint8_t *dest, const uint8_t *src, size_t n);
 // Appends up to 'n' characters from 'src' to 'dest'.
 
-size_t strlen(const uint8_t *str);
+size_t strlen(const char *str);
 // Returns the length of the string 'str'.
 
 int32_t strcmp(const uint8_t *str1, const uint8_t *str2);
