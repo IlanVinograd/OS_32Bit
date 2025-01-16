@@ -34,25 +34,58 @@ void init_fs() {
 }
 
 void create_file(char* filename) {
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+
     if (strlen(filename) > 10) {
-        printf("Error: Filename too long. Maximum length is 10 characters.\n",RED_ON_BLACK_WARNING);
+        printf("Error: Filename too long. Maximum length is 10 characters.\n", RED_ON_BLACK_WARNING);
         return;
     }
 
-    if(!updateSB()) {
-        printf("Error: updateSB.\n", RED_ON_BLACK_WARNING);
+    if (isCreated(filename)) {
+        printf("Error: File %s is already created. Choose a different name.\n", RED_ON_BLACK_WARNING, filename);
+        row++;
+        if (row >= VGA_ROWS) {
+            scroll_screen();
+            row = VGA_ROWS - 1;
+        }
+        keyboard_cursor_position = row * VGA_COLS;
+        setCursorPosition(row, 0);
         return;
     }
 
-    if(!updateDir(filename)) {
-        printf("Error: updateDir.\n", RED_ON_BLACK_WARNING);
+    if (!updateSB()) {
+        printf("Error: Failed to update SuperBlock.\n", RED_ON_BLACK_WARNING);
         return;
     }
 
-    if(!updateFat()) {
-        printf("Error: updateFat.\n", RED_ON_BLACK_WARNING);
+    if (!updateDir(filename)) {
+        printf("Error: Failed to update directory.\n", RED_ON_BLACK_WARNING);
         return;
     }
+
+    if (!updateFat()) {
+        printf("Error: Failed to update FAT.\n", RED_ON_BLACK_WARNING);
+        return;
+    }
+}
+
+void delete_file(char* filename) {
+
+}
+
+bool_t isCreated(char* filename) {
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / 512, dir_buffer);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        uint8_t* dir_entry_name = &dir_buffer[i * 16];
+        if (strncmp((const uint8_t *)dir_entry_name, (const uint8_t *)filename, strlen(filename)) == 0) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool_t updateSB() {

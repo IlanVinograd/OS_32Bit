@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <ata.h>
 #include <string.h>
+#include <vga.h>
 
 #define OFFSET_BEGIN 0x10000
 
@@ -38,7 +39,9 @@ typedef struct DirEntry // 16 byte
 
 void init_fs();
 void create_file(char* filename);
+void delete_file(char* filename);
 
+bool_t isCreated(char* filename);
 bool_t updateSB();
 bool_t updateDir(char* filename);
 bool_t updateFat();
