@@ -20,18 +20,18 @@ void init_fs() {
         dir[i] = (dir_buffer[i * 16] == 0 || dir_buffer[i * 16] == '?') ? 0 : 1; // read this byte if ? or 0 means dir free other wise is not.
     }
 
-    printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
-    printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
-    printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
-    printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
-    printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
-    printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
-    printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
+    // printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
+    // printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
+    // printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
+    // printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
+    // printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
+    // printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
+    // printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
 
-    printf("Dir Status: ", RED_ON_BLACK_WARNING);
-    for(int i = 0; i < MAX_DIR; i++){
-        printf("%x", RED_ON_BLACK_WARNING, dir[i]);
-    }
+    // printf("Dir Status: ", RED_ON_BLACK_WARNING);
+    // for(int i = 0; i < MAX_DIR; i++){
+    //     printf("%x", RED_ON_BLACK_WARNING, dir[i]);
+    // }
 }
 
 void create_file(char* filename) {
@@ -88,6 +88,76 @@ void delete_file(char* filename) {
     }
     printf("File: %s Removed.\n", RED_ON_BLACK_WARNING, filename);
     nextLine();
+}
+
+void write_to_file(char* data, char* filename) {
+    if (strlen(filename) > 10) {
+        printf("Error: Filename too long. Maximum length is 10 characters.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+
+    if (!isCreated(filename)) {
+        printf("Error: File %s is not created. Choose a different File.\n", RED_ON_BLACK_WARNING, filename);
+        nextLine();
+        return;
+    }
+
+    if(!write_data(filename, data)) {
+        printf("Error: Place data to file.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+}
+
+void output_file(char* filename) {
+    if(strlen(filename) > 10) {
+        printf("Error: Filename too long. Maximum length is 10 characters.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+
+    if(!isCreated(filename)) {
+        printf("Error: File: %s not Found.\n", RED_ON_BLACK_WARNING, filename);
+        nextLine();
+        return;
+    }
+
+    if(!extract_file(filename)) {
+        printf("Error: Failed to update extract_file.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+}
+
+void showAllFiles() {
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    printf("\n  Name           Length\n", COLOR_BLACK_ON_WHITE);
+    printf("  ----           ------\n", COLOR_BLACK_ON_WHITE);
+
+    keyboard_cursor_position += 2 * VGA_COLS;
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+
+        if (dir_entry->name[0] != 0 && dir_entry->name[0] != '?') {
+            printWithPads("  %-10s      (Size: %-4d bytes)\n", COLOR_BLACK_ON_WHITE, dir_entry->name, dir_entry->size);
+            keyboard_cursor_position += VGA_COLS;
+        }
+    }
+
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+    row+=2;
+    if (row >= VGA_ROWS) {
+        scroll_screen();
+        row = VGA_ROWS - 1;
+    }
+    keyboard_cursor_position = row * VGA_COLS;
+    setCursorPosition(row, 0);
 }
 
 void write_to_file(char* data, char* filename) {
@@ -311,6 +381,117 @@ bool_t removeFat(char* filename) {
         }
     }
     return false;
+}
+
+bool_t write_data(char* filename, char* data) {
+    DirEntry entry = {0};
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+        if (strncmp((const uint8_t *)dir_entry->name, (const uint8_t *)filename, strlen(filename)) == 0) {
+            memcpy(&entry, dir_entry, sizeof(DirEntry));
+            break;
+        }
+    }
+
+    // uint8_t bufferFat[FAT] = {0};
+    // ata_identify(ATA_PRIMARY_IO, ATA_MASTER);                                      // NOT SURE IF NEEDED.
+    // ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
+
+    // Get the starting cluster from the FAT entry
+    uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
+    if (cluster == 0xFFFF) {
+        printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    uint32_t startSector = START_DATA + (cluster / 8 * SB.sectors_per_cluster);
+
+    // Ensure the data fits into the allocated clusters
+    size_t dataLength = strlen(data);
+    size_t maxDataSize = SB.sectors_per_cluster * SECTOR_SIZE; // 8 sectors * 512 bytes
+    if (dataLength > maxDataSize) {
+        printf("Error: Data exceeds the size of the allocated cluster.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    // Prepare the cluster buffer
+    uint8_t clusterBuffer[maxDataSize];
+    memset(clusterBuffer, 0, sizeof(clusterBuffer)); // abrogate all region to be empty.
+    memcpy(clusterBuffer, data, dataLength);
+
+    ata_write(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, clusterBuffer);
+
+    // Update the file size in the directory entry
+    entry.size = dataLength - 1;
+    memcpy(&dir_buffer[(entry.fat_entry / 8 * 16)], &entry, sizeof(DirEntry));
+
+    // Write the updated directory entry back to disk
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    return true;
+}
+
+bool_t extract_file(char* filename) {
+    DirEntry entry = {0};
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+        if (strncmp((const uint8_t *)dir_entry->name, (const uint8_t *)filename, strlen(filename)) == 0) {
+            memcpy(&entry, dir_entry, sizeof(DirEntry));
+            break;
+        }
+    }
+
+    uint16_t cluster = entry.fat_entry;
+    if (cluster == 0xFFFF) {
+        printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    uint32_t startSector = START_DATA + (cluster / 8 * SB.sectors_per_cluster);
+
+    uint8_t* data = (uint8_t*)malloc(SECTOR_SIZE * SB.sectors_per_cluster);
+    if (!data) {
+        printf("Error: Memory allocation failed.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+    memset(data, 0, SECTOR_SIZE * SB.sectors_per_cluster);
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, data);
+
+    char* line = strtok((char*)data, "\n");
+    while (line != NULL) {
+        int line_length = strlen(line);
+        for (int i = 0; i < line_length; i++) {
+            putc(line[i], COLOR_BLACK_ON_WHITE);
+            keyboard_cursor_position++;
+            if (keyboard_cursor_position % VGA_COLS == 0) {
+                uint16_t row = keyboard_cursor_position / VGA_COLS;
+                if (row >= VGA_ROWS) {
+                    scroll_screen();
+                    row = VGA_ROWS - 1;
+                }
+                keyboard_cursor_position = row * VGA_COLS;
+                setCursorPosition(row, 0);
+            }
+        }
+        nextLine();
+        nextLine();
+        line = strtok(NULL, "\n");
+    }
+
+    free(data);
+    return true;
 }
 
 bool_t write_data(char* filename, char* data) {

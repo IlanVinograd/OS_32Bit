@@ -177,7 +177,7 @@ void handle_enter() {
     setCursorPosition(row, col);
     putc(' ', COLOR_BLACK_ON_WHITE);
     
-    // Shell Functions
+    // Process the command
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
@@ -189,16 +189,14 @@ void handle_enter() {
         }
         keyboard_cursor_position = row * VGA_COLS;
         setCursorPosition(row, 0);
+        print_prompt();
         return;
     }
-    
-    // Parse input command
+
     ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
-    // Move cursor to the next line
     row++;
     if (row >= VGA_ROWS) {
-        // Scroll again if we're still at the last row
         scroll_screen();
         row = VGA_ROWS - 1;
     }
@@ -206,6 +204,7 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
+    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
     if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
             // Allocate all memory
@@ -305,43 +304,12 @@ void handle_enter() {
         }
     }
 
-
-/*
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {
-        printf("Start reading from slave drive!\n", RED_ON_BLACK_WARNING);
-
-        uint8_t buffer[ATA_SECTOR_SIZE];
-        memset(buffer, 0, ATA_SECTOR_SIZE);
-
-        ata_identify(ATA_PRIMARY_IO, ATA_SLAVE);
-        ata_read(ATA_PRIMARY_IO, ATA_SLAVE, 0, 1, buffer);
-
-        printf("Data read (first 16 bytes):\n", RED_ON_BLACK_WARNING);
-        for (int i = 0; i < 16; i++) {
-            uint8_t value = buffer[i];
-            if (value < 0x10) {
-                printf("0x0%X ", COLOR_BLACK_ON_WHITE, value);
-            } else {
-                printf("0x%X ", COLOR_BLACK_ON_WHITE, value);
-            }
-        }
-        printf("\nRead Complete!\n", RED_ON_BLACK_WARNING);
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"ls") == 0) {
+        showAllFiles();
     }
 
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"write") == 0) {
-        uint8_t buffer[ATA_SECTOR_SIZE];
-        for (int i = 0; i < ATA_SECTOR_SIZE; i++) {
-            buffer[i] = i % 256;
-        }
+    handleHelpCommand(parsedCommand);
 
-        for (uint32_t lba = 0; lba <= 16; lba++) {
-            ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
-            ata_write(ATA_PRIMARY_IO, ATA_MASTER, lba, 1, buffer);
-        }
-
-        printf("Write operation completed!\n", RED_ON_BLACK_WARNING);
-    }
-*/
     // Recognize and process free command
     if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
         handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
@@ -354,13 +322,15 @@ void handle_enter() {
     }
 
     // Reset input buffer to default size
-    free(inputBuffer); // Free the current buffer
-    inputBufferSize = 256; // Reset the buffer size
-    inputBuffer = (char*)malloc(inputBufferSize); // Allocate a new buffer
+    free(inputBuffer);
+    inputBufferSize = 256;
+    inputBuffer = (char*)malloc(inputBufferSize);
     if (!inputBuffer) {
         printf("Error: Could not reallocate input buffer.\n", RED_ON_BLACK_WARNING);
         return;
     }
-    inputBuffer[0] = '\0'; // Initialize the buffer
-    inputBufferIndex = 0;  // Reset the index
+    inputBuffer[0] = '\0';
+    inputBufferIndex = 0;
+
+    print_prompt();
 }
