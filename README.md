@@ -1,7 +1,7 @@
 # Overview Version 0.9
 **OS_32Bit** is a 32-bit operating system designed to showcase technical capabilities and serve as a platform for learning and collaboration. It is entirely open-source, inviting contributions from the developer community.
 
-![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/BG%20test.gif)
+![Images/BG test.gif](https://github.com/IlanVinograd/OS_32Bit/blob/main/Images/GIF_TEST.gif)
 
 ## Core Components:
 - Kernel Entry
@@ -28,8 +28,7 @@ This section provides the necessary steps for installing the operating system, i
 - **Do Fork + Clone Repository**:
   
   ```bash
-  gh repo fork    https://github.com/IlanVinograd/OS_32Bi  t.git --clone=true
-  gh repo star IlanVinograd/OS_32Bit
+  gh repo fork    https://github.com/IlanVinograd/OS_32Bi  t.git --clone=true gh repo star IlanVinograd/OS_32Bit
   ```
 - **System Requirements**: A basic development environment with Docker installed.
 - **For GUI QEMU**: Required install -> [VcXsrv](https://sourceforge.net/projects/vcxsrv/), When you start VcXsrv, choose "Multiple Windows" and ensure that "Disable access control" is checked.
@@ -67,6 +66,7 @@ cd ..
   ```
 
 ### Rebuilding the File System (IF IT IS BROKEN OR TO RESET FS)
+
 - If you need to reset the file system (rebuild the bootloader image and embed the file system), use the following commands:
 
 **CMD**

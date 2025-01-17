@@ -20,6 +20,8 @@
         "pic.h": "c",
         "render.h": "c",
         "shell.h": "c",
+        "file_system.h": "c"
+    }
         "file_system.h": "c",
         "test.h": "c"
     },
