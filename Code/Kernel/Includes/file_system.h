@@ -40,6 +40,7 @@ typedef struct DirEntry // 16 byte
 } DirEntry;
 
 void init_fs();
+
 void create_file(char* filename);
 void delete_file(char* filename);
 void write_to_file(char* data, char* filename);
