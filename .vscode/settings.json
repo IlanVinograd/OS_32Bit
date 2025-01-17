@@ -19,6 +19,11 @@
         "string.h": "c",
         "pic.h": "c",
         "render.h": "c",
-        "shell.h": "c"
+        "shell.h": "c",
+        "file_system.h": "c"
     }
+        "file_system.h": "c",
+        "test.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

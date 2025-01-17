@@ -2,7 +2,7 @@
 [org 0x8000]
 
 ; Kernel sectors to read
-KERNEL_SECTORS      equ 80
+KERNEL_SECTORS      equ 85
 KERNEL_LOAD_SEG     equ 0x1000
 KERNEL_LOAD_OFFSET  equ 0x0000
 KERNEL_LOAD_ADDR    equ  ((KERNEL_LOAD_SEG<<4) + KERNEL_LOAD_OFFSET)
