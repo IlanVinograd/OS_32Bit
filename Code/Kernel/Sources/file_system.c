@@ -20,18 +20,18 @@ void init_fs() {
         dir[i] = (dir_buffer[i * 16] == 0 || dir_buffer[i * 16] == '?') ? 0 : 1; // read this byte if ? or 0 means dir free other wise is not.
     }
 
-    printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
-    printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
-    printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
-    printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
-    printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
-    printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
-    printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
+    // printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
+    // printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
+    // printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
+    // printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
+    // printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
+    // printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
+    // printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
 
-    printf("Dir Status: ", RED_ON_BLACK_WARNING);
-    for(int i = 0; i < MAX_DIR; i++){
-        printf("%x", RED_ON_BLACK_WARNING, dir[i]);
-    }
+    // printf("Dir Status: ", RED_ON_BLACK_WARNING);
+    // for(int i = 0; i < MAX_DIR; i++){
+    //     printf("%x", RED_ON_BLACK_WARNING, dir[i]);
+    // }
 }
 
 void create_file(char* filename) {
@@ -128,6 +128,36 @@ void output_file(char* filename) {
         nextLine();
         return;
     }
+}
+
+void showAllFiles() {
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    printf("\n  Name           Length\n", COLOR_BLACK_ON_WHITE);
+    printf("  ----           ------\n", COLOR_BLACK_ON_WHITE);
+
+    keyboard_cursor_position += 2 * VGA_COLS;
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+
+        if (dir_entry->name[0] != 0 && dir_entry->name[0] != '?') {
+            printWithPads("  %-10s      (Size: %-4d bytes)\n", COLOR_BLACK_ON_WHITE, dir_entry->name, dir_entry->size);
+            keyboard_cursor_position += VGA_COLS;
+        }
+    }
+
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+    row+=2;
+    if (row >= VGA_ROWS) {
+        scroll_screen();
+        row = VGA_ROWS - 1;
+    }
+    keyboard_cursor_position = row * VGA_COLS;
+    setCursorPosition(row, 0);
 }
 
 bool_t isCreated(char* filename) {
@@ -382,7 +412,7 @@ bool_t extract_file(char* filename) {
         }
     }
 
-    uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
+    uint16_t cluster = entry.fat_entry;
     if (cluster == 0xFFFF) {
         printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
         return false;
@@ -399,9 +429,28 @@ bool_t extract_file(char* filename) {
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
     ata_read(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, data);
 
-    printf("%s", COLOR_BLACK_ON_WHITE, data);
+    char* line = strtok((char*)data, "\n");
+    while (line != NULL) {
+        int line_length = strlen(line);
+        for (int i = 0; i < line_length; i++) {
+            putc(line[i], COLOR_BLACK_ON_WHITE);
+            keyboard_cursor_position++;
+            if (keyboard_cursor_position % VGA_COLS == 0) {
+                uint16_t row = keyboard_cursor_position / VGA_COLS;
+                if (row >= VGA_ROWS) {
+                    scroll_screen();
+                    row = VGA_ROWS - 1;
+                }
+                keyboard_cursor_position = row * VGA_COLS;
+                setCursorPosition(row, 0);
+            }
+        }
+        nextLine();
+        nextLine();
+        line = strtok(NULL, "\n");
+    }
+
     free(data);
-    nextLine();
     return true;
 }
 

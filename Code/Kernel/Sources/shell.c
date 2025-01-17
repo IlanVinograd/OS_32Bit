@@ -164,3 +164,59 @@ void handleCubeCommand() {
     clear();
     yield();
 }
+
+void handleHelpCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"help") == 0) {
+        showHelp();
+        nextLine();
+    }
+}
+
+void showHelp() {
+    nextLine();
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+
+    const char* helpText[] = {
+        "Shell Commands:",
+        "clear                     - Clear the screen.",
+        "echo <text> > <file>      - Write text to a file.",
+        "ls                        - List all files.",
+        "cat <file>                - Display the contents of a file.",
+        "touch <file>              - Create a new empty file.",
+        "rm <file>                 - Remove a file.",
+        "fs --init                 - Initialize the file system. (NOT IN USED)",
+        "free [--bar | --kibi]     - Show memory usage (bar graph or in KiB).",
+        "cube [--on | --off]       - Enable or disable the rotating cube.",
+        "help                      - Show this help message.",
+        "test [--all | --some]     - Run memory tests or create fragmentation."
+    };
+
+    for (size_t i = 0; i < sizeof(helpText) / sizeof(helpText[0]); ++i) {
+        scrollIfNeeded(row);
+        printf("%s\n", COLOR_BLACK_ON_WHITE, helpText[i]);
+        row++;
+    }
+
+    setCursorPosition(row, 0);
+    keyboard_cursor_position = row * VGA_COLS;
+}
+
+void print_prompt() {
+    printf(SHELL_PROMPT, COLOR_BLACK_ON_WHITE);
+
+    keyboard_cursor_position += strlen(SHELL_PROMPT);
+
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+    uint16_t col = keyboard_cursor_position % VGA_COLS;
+    setCursorPosition(row, col);
+}
+
+void init_shell() {
+    uint16_t initial_row = 2;
+    uint16_t initial_col = 0;
+    keyboard_cursor_position = initial_row * VGA_COLS + initial_col;
+
+    setCursorPosition(initial_row, initial_col);
+
+    print_prompt();
+}

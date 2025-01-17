@@ -199,6 +199,154 @@ void printf(const char* fmt, TextStyle style, ...) {
     va_end(args);
 }
 
+void printWithPads(const char* fmt, TextStyle style, ...) {
+    va_list args;
+    va_start(args, style);
+
+    char c;
+    while ((c = *fmt++) != '\0') {
+        if (c == '%') {
+            char next = *fmt++;
+            int width = 0;
+            bool_t zero_pad = false;
+            bool_t left_align = false;
+
+            if (next == '-') {
+                left_align = true;
+                next = *fmt++;
+            } else if (next == '0') {
+                zero_pad = true;
+                next = *fmt++;
+            }
+            while (next >= '0' && next <= '9') {
+                width = width * 10 + (next - '0');
+                next = *fmt++;
+            }
+
+            switch (next) {
+                case 'c': {
+                    char ch = (char)va_arg(args, int);
+                    putc(ch, style);
+                    break;
+                }
+                case 's': {
+                    char* str = va_arg(args, char*);
+                    int len = strlen((uint8_t*)str);
+
+                    if (!left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+
+                    while (*str) {
+                        putc(*str++, style);
+                    }
+
+                    if (left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+                    break;
+                }
+                case 'd': {
+                    int num = va_arg(args, int);
+                    char buffer[16];
+                    itoa(num, buffer, 10);
+                    int len = strlen((uint8_t*)buffer);
+
+                    if (!left_align && zero_pad) {
+                        // Add zero padding
+                        while (len < width) {
+                            putc('0', style);
+                            len++;
+                        }
+                    } else if (!left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+
+                    if (left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+                    break;
+                }
+                case 'u': {
+                    unsigned int num = va_arg(args, unsigned int);
+                    char buffer[16];
+                    utoa(num, buffer, 10);
+                    int len = strlen((uint8_t*)buffer);
+
+                    if (!left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+
+                    if (left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+                    break;
+                }
+                case 'x': {
+                    int num = va_arg(args, int);
+                    char buffer[16];
+                    itoa(num, buffer, 16);
+                    int len = strlen((uint8_t*)buffer);
+
+                    if (!left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+
+                    char* p = buffer;
+                    while (*p) {
+                        putc(*p++, style);
+                    }
+
+                    if (left_align && width > len) {
+                        for (int i = 0; i < width - len; i++) {
+                            putc(' ', style);
+                        }
+                    }
+                    break;
+                }
+                default: {
+                    putc('%', style);
+                    putc(next, style);
+                    break;
+                }
+            }
+        } else if (c == '\n') {
+            uint16_t cursor_position = getCursorPosition();
+            uint16_t row = cursor_position / VGA_COLS;
+            row++;
+            setCursorPosition(row, 0);
+        } else {
+            putc(c, style);
+        }
+    }
+
+    va_end(args);
+}
+
 void scroll_screen() {
     uint16_t *video_address = (uint16_t *)video_text_mem;
 

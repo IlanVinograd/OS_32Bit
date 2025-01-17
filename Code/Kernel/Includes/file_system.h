@@ -6,9 +6,14 @@
 #include <string.h>
 #include <vga.h>
 #include <shell.h>
+#include <shell.h>
 
 #define OFFSET_BEGIN 0x10000
 
+#define START_FS   (OFFSET_BEGIN / SECTOR_SIZE) // Here the file system start, it's like offset.
+#define START_DIR  ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the dir entries system start, it's like offset.
+#define START_FAT  ((OFFSET_BEGIN + 0x01200) / SECTOR_SIZE) // Here the FAT start, it's like offset.
+#define START_DATA ((OFFSET_BEGIN + 0x02200) / SECTOR_SIZE) // Here the DATA start, it's like offset.
 #define START_FS   (OFFSET_BEGIN / SECTOR_SIZE) // Here the file system start, it's like offset.
 #define START_DIR  ((OFFSET_BEGIN + 0x00200) / SECTOR_SIZE) // Here the dir entries system start, it's like offset.
 #define START_FAT  ((OFFSET_BEGIN + 0x01200) / SECTOR_SIZE) // Here the FAT start, it's like offset.
@@ -45,6 +50,7 @@ void create_file(char* filename);
 void delete_file(char* filename);
 void write_to_file(char* data, char* filename);
 void output_file(char* filename);
+void showAllFiles();
 
 bool_t isCreated(char* filename);
 bool_t updateSB();
@@ -55,6 +61,8 @@ bool_t isAvaSec(int32_t sectors);
 bool_t isAvaDir();
 bool_t removeDir(char* filename);
 bool_t removeFat(char* filename);
+bool_t write_data(char* filename, char* data);
+bool_t extract_file(char* filename);
 bool_t write_data(char* filename, char* data);
 bool_t extract_file(char* filename);
 
