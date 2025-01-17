@@ -12,6 +12,11 @@ uint32_t inputBufferSize = 256;
 extern TextStyle backGroundColor;
 extern SuperBlock SP;
 
+void print_prompt() {
+    printf(SHELL_PROMPT, COLOR_BLACK_ON_WHITE);
+    keyboard_cursor_position += strlen(SHELL_PROMPT);
+}
+
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);
 
@@ -177,7 +182,7 @@ void handle_enter() {
     setCursorPosition(row, col);
     putc(' ', COLOR_BLACK_ON_WHITE);
     
-    // Shell Functions
+    // Process the command
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
@@ -189,16 +194,14 @@ void handle_enter() {
         }
         keyboard_cursor_position = row * VGA_COLS;
         setCursorPosition(row, 0);
+        print_prompt(); // Print the prompt after a blank line
         return;
     }
-    
-    // Parse input command
+
     ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
-    // Move cursor to the next line
     row++;
     if (row >= VGA_ROWS) {
-        // Scroll again if we're still at the last row
         scroll_screen();
         row = VGA_ROWS - 1;
     }
@@ -358,13 +361,15 @@ void handle_enter() {
     }
 
     // Reset input buffer to default size
-    free(inputBuffer); // Free the current buffer
-    inputBufferSize = 256; // Reset the buffer size
-    inputBuffer = (char*)malloc(inputBufferSize); // Allocate a new buffer
+    free(inputBuffer);
+    inputBufferSize = 256;
+    inputBuffer = (char*)malloc(inputBufferSize);
     if (!inputBuffer) {
         printf("Error: Could not reallocate input buffer.\n", RED_ON_BLACK_WARNING);
         return;
     }
-    inputBuffer[0] = '\0'; // Initialize the buffer
-    inputBufferIndex = 0;  // Reset the index
+    inputBuffer[0] = '\0';
+    inputBufferIndex = 0;
+
+    print_prompt(); // Print the prompt for the next command
 }

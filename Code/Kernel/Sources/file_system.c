@@ -132,20 +132,32 @@ void output_file(char* filename) {
 
 void showAllFiles() {
     uint8_t dir_buffer[MAX_DIR * 16] = {0};
-    
+
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
     ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
 
-    printf("  Name           Length\n", COLOR_BLACK_ON_WHITE);
+    printf("\n  Name           Length\n", COLOR_BLACK_ON_WHITE);
     printf("  ----           ------\n", COLOR_BLACK_ON_WHITE);
+
+    keyboard_cursor_position += 2 * VGA_COLS;
 
     for (int i = 0; i < MAX_DIR; i++) {
         DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
 
         if (dir_entry->name[0] != 0 && dir_entry->name[0] != '?') {
-            printWithPads("  %-10s      (Size: %-4d bytes)\n",COLOR_BLACK_ON_WHITE, dir_entry->name, dir_entry->size);
+            printWithPads("  %-10s      (Size: %-4d bytes)\n", COLOR_BLACK_ON_WHITE, dir_entry->name, dir_entry->size);
+            keyboard_cursor_position += VGA_COLS;
         }
     }
+
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+    row+=2;
+    if (row >= VGA_ROWS) {
+        scroll_screen();
+        row = VGA_ROWS - 1;
+    }
+    keyboard_cursor_position = row * VGA_COLS;
+    setCursorPosition(row, 0);
 }
 
 bool_t isCreated(char* filename) {
@@ -400,7 +412,7 @@ bool_t extract_file(char* filename) {
         }
     }
 
-    uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
+    uint16_t cluster = entry.fat_entry;
     if (cluster == 0xFFFF) {
         printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
         return false;
@@ -417,9 +429,28 @@ bool_t extract_file(char* filename) {
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
     ata_read(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, data);
 
-    printf("%s", COLOR_BLACK_ON_WHITE, data);
+    char* line = strtok((char*)data, "\n");
+    while (line != NULL) {
+        int line_length = strlen(line);
+        for (int i = 0; i < line_length; i++) {
+            putc(line[i], COLOR_BLACK_ON_WHITE);
+            keyboard_cursor_position++;
+            if (keyboard_cursor_position % VGA_COLS == 0) {
+                uint16_t row = keyboard_cursor_position / VGA_COLS;
+                if (row >= VGA_ROWS) {
+                    scroll_screen();
+                    row = VGA_ROWS - 1;
+                }
+                keyboard_cursor_position = row * VGA_COLS;
+                setCursorPosition(row, 0);
+            }
+        }
+        nextLine();
+        nextLine();
+        line = strtok(NULL, "\n");
+    }
+
     free(data);
-    nextLine();
     return true;
 }
 

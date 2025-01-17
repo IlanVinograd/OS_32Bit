@@ -206,13 +206,11 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
     char c;
     while ((c = *fmt++) != '\0') {
         if (c == '%') {
-            // Handle format specifiers
             char next = *fmt++;
-            int width = 0;        // Field width for padding
-            bool_t zero_pad = false; // Zero-padding flag
-            bool_t left_align = false; // Left-align flag
+            int width = 0;
+            bool_t zero_pad = false;
+            bool_t left_align = false;
 
-            // Parse alignment and padding
             if (next == '-') {
                 left_align = true;
                 next = *fmt++;
@@ -227,18 +225,15 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
 
             switch (next) {
                 case 'c': {
-                    // Print a character
                     char ch = (char)va_arg(args, int);
                     putc(ch, style);
                     break;
                 }
                 case 's': {
-                    // Print a string with alignment
                     char* str = va_arg(args, char*);
                     int len = strlen((uint8_t*)str);
 
                     if (!left_align && width > len) {
-                        // Add padding spaces before the string
                         for (int i = 0; i < width - len; i++) {
                             putc(' ', style);
                         }
@@ -249,7 +244,6 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     }
 
                     if (left_align && width > len) {
-                        // Add padding spaces after the string
                         for (int i = 0; i < width - len; i++) {
                             putc(' ', style);
                         }
@@ -257,9 +251,8 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 case 'd': {
-                    // Print an integer with optional padding
                     int num = va_arg(args, int);
-                    char buffer[16];  // Buffer to hold the string representation
+                    char buffer[16];
                     itoa(num, buffer, 10);
                     int len = strlen((uint8_t*)buffer);
 
@@ -270,7 +263,6 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                             len++;
                         }
                     } else if (!left_align && width > len) {
-                        // Add space padding before the number
                         for (int i = 0; i < width - len; i++) {
                             putc(' ', style);
                         }
@@ -282,7 +274,6 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     }
 
                     if (left_align && width > len) {
-                        // Add space padding after the number
                         for (int i = 0; i < width - len; i++) {
                             putc(' ', style);
                         }
@@ -290,7 +281,6 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 case 'u': {
-                    // Print an unsigned integer
                     unsigned int num = va_arg(args, unsigned int);
                     char buffer[16];
                     utoa(num, buffer, 10);
@@ -315,7 +305,6 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 case 'x': {
-                    // Print a hexadecimal integer
                     int num = va_arg(args, int);
                     char buffer[16];
                     itoa(num, buffer, 16);
@@ -340,14 +329,12 @@ void printWithPads(const char* fmt, TextStyle style, ...) {
                     break;
                 }
                 default: {
-                    // Print unknown format as-is
                     putc('%', style);
                     putc(next, style);
                     break;
                 }
             }
         } else if (c == '\n') {
-            // Handle newline character
             uint16_t cursor_position = getCursorPosition();
             uint16_t row = cursor_position / VGA_COLS;
             row++;
