@@ -288,6 +288,23 @@ void handle_enter() {
         }
     }
 
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"cat") == 0) {
+        if (parsedCommand.arg_count == 1) {
+            output_file(parsedCommand.arguments[0]);
+
+        } else {
+            printf("Error: Invalid syntax. Usage: cat <File> >\n", RED_ON_BLACK_WARNING);
+
+            row += 1;
+            if (row >= VGA_ROWS) {
+                scroll_screen();
+                row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = row * VGA_COLS;
+            setCursorPosition(row, 0);
+        }
+    }
+
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {

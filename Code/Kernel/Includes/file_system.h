@@ -5,6 +5,7 @@
 #include <ata.h>
 #include <string.h>
 #include <vga.h>
+#include <shell.h>
 
 #define OFFSET_BEGIN 0x10000
 
@@ -42,6 +43,7 @@ void init_fs();
 void create_file(char* filename);
 void delete_file(char* filename);
 void write_to_file(char* data, char* filename);
+void output_file(char* filename);
 
 bool_t isCreated(char* filename);
 bool_t updateSB();
@@ -53,6 +55,7 @@ bool_t isAvaDir();
 bool_t removeDir(char* filename);
 bool_t removeFat(char* filename);
 bool_t write_data(char* filename, char* data);
+bool_t extract_file(char* filename);
 
 void updateDirAndSec(int32_t sectors, int32_t dir);
 

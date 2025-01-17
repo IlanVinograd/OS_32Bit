@@ -110,6 +110,26 @@ void write_to_file(char* data, char* filename) {
     }
 }
 
+void output_file(char* filename) {
+    if(strlen(filename) > 10) {
+        printf("Error: Filename too long. Maximum length is 10 characters.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+
+    if(!isCreated(filename)) {
+        printf("Error: File: %s not Found.\n", RED_ON_BLACK_WARNING, filename);
+        nextLine();
+        return;
+    }
+
+    if(!extract_file(filename)) {
+        printf("Error: Failed to update extract_file.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+}
+
 bool_t isCreated(char* filename) {
     uint8_t dir_buffer[MAX_DIR * 16] = {0};
 
@@ -308,9 +328,9 @@ bool_t write_data(char* filename, char* data) {
         }
     }
 
-    uint8_t bufferFat[FAT] = {0};
-    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
-    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
+    // uint8_t bufferFat[FAT] = {0};
+    // ata_identify(ATA_PRIMARY_IO, ATA_MASTER);                                      // NOT SURE IF NEEDED.
+    // ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
 
     // Get the starting cluster from the FAT entry
     uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
@@ -344,6 +364,44 @@ bool_t write_data(char* filename, char* data) {
     ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
     ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
 
+    return true;
+}
+
+bool_t extract_file(char* filename) {
+    DirEntry entry = {0};
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+        if (strncmp((const uint8_t *)dir_entry->name, (const uint8_t *)filename, strlen(filename)) == 0) {
+            memcpy(&entry, dir_entry, sizeof(DirEntry));
+            break;
+        }
+    }
+
+    uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
+    if (cluster == 0xFFFF) {
+        printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    uint32_t startSector = START_DATA + (cluster / 8 * SB.sectors_per_cluster);
+
+    uint8_t* data = (uint8_t*)malloc(SECTOR_SIZE * SB.sectors_per_cluster);
+    if (!data) {
+        printf("Error: Memory allocation failed.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+    memset(data, 0, SECTOR_SIZE * SB.sectors_per_cluster);
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, data);
+
+    printf("%s", COLOR_BLACK_ON_WHITE, data);
+    free(data);
+    nextLine();
     return true;
 }
 

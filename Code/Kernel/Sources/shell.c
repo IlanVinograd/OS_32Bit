@@ -63,6 +63,7 @@ ParsedCommand parseCommand(char* input) {
         } else {
             printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
             parsedCommand.command = "\0";
+            return parsedCommand;
         }
     } else {
         char* arg = strtok(NULL, " ");
