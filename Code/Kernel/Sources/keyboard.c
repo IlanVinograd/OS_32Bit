@@ -273,8 +273,8 @@ void handle_enter() {
 
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"echo") == 0) {
         if (parsedCommand.arg_count >= 2) {
-            printf("Command: %s\n",RED_ON_BLACK_WARNING, parsedCommand.command);
-            printf("Arguments: %s >>>> %s\n",RED_ON_BLACK_WARNING, parsedCommand.arguments[0], parsedCommand.arguments[1]);
+            write_to_file(parsedCommand.arguments[0], parsedCommand.arguments[1]);
+            
         } else {
             printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
 

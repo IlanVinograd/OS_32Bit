@@ -51,7 +51,7 @@ ParsedCommand parseCommand(char* input) {
                 parsedCommand.arguments[parsedCommand.arg_count++] = target_file;
             } else {
                 printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
-                parsedCommand.command = NULL;
+                parsedCommand.command = "\0";
                 return parsedCommand;
             }
 

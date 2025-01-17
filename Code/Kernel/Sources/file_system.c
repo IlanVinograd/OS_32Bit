@@ -90,6 +90,26 @@ void delete_file(char* filename) {
     nextLine();
 }
 
+void write_to_file(char* data, char* filename) {
+    if (strlen(filename) > 10) {
+        printf("Error: Filename too long. Maximum length is 10 characters.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+
+    if (!isCreated(filename)) {
+        printf("Error: File %s is not created. Choose a different File.\n", RED_ON_BLACK_WARNING, filename);
+        nextLine();
+        return;
+    }
+
+    if(!write_data(filename, data)) {
+        printf("Error: Place data to file.\n", RED_ON_BLACK_WARNING);
+        nextLine();
+        return;
+    }
+}
+
 bool_t isCreated(char* filename) {
     uint8_t dir_buffer[MAX_DIR * 16] = {0};
 
@@ -271,6 +291,60 @@ bool_t removeFat(char* filename) {
         }
     }
     return false;
+}
+
+bool_t write_data(char* filename, char* data) {
+    DirEntry entry = {0};
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+        if (strncmp((const uint8_t *)dir_entry->name, (const uint8_t *)filename, strlen(filename)) == 0) {
+            memcpy(&entry, dir_entry, sizeof(DirEntry));
+            break;
+        }
+    }
+
+    uint8_t bufferFat[FAT] = {0};
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_FAT, FAT / SECTOR_SIZE, bufferFat);
+
+    // Get the starting cluster from the FAT entry
+    uint16_t cluster = entry.fat_entry; // FAT entry already provides the starting cluster
+    if (cluster == 0xFFFF) {
+        printf("Error: Invalid FAT entry for the file.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    uint32_t startSector = START_DATA + (cluster / 8 * SB.sectors_per_cluster);
+
+    // Ensure the data fits into the allocated clusters
+    size_t dataLength = strlen(data);
+    size_t maxDataSize = SB.sectors_per_cluster * SECTOR_SIZE; // 8 sectors * 512 bytes
+    if (dataLength > maxDataSize) {
+        printf("Error: Data exceeds the size of the allocated cluster.\n", RED_ON_BLACK_WARNING);
+        return false;
+    }
+
+    // Prepare the cluster buffer
+    uint8_t clusterBuffer[maxDataSize];
+    memset(clusterBuffer, 0, sizeof(clusterBuffer)); // abrogate all region to be empty.
+    memcpy(clusterBuffer, data, dataLength);
+
+    ata_write(ATA_PRIMARY_IO, ATA_MASTER, startSector, SB.sectors_per_cluster, clusterBuffer);
+
+    // Update the file size in the directory entry
+    entry.size = dataLength - 1;
+    memcpy(&dir_buffer[(entry.fat_entry / 8 * 16)], &entry, sizeof(DirEntry));
+
+    // Write the updated directory entry back to disk
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_write(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    return true;
 }
 
 void updateDirAndSec(int32_t sectors, int32_t dir) { // Could be - or + 
