@@ -305,6 +305,10 @@ void handle_enter() {
         }
     }
 
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"ls") == 0) {
+        showAllFiles();
+    }
+
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {

@@ -45,6 +45,7 @@ void create_file(char* filename);
 void delete_file(char* filename);
 void write_to_file(char* data, char* filename);
 void output_file(char* filename);
+void showAllFiles();
 
 bool_t isCreated(char* filename);
 bool_t updateSB();

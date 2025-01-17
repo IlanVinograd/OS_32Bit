@@ -130,6 +130,24 @@ void output_file(char* filename) {
     }
 }
 
+void showAllFiles() {
+    uint8_t dir_buffer[MAX_DIR * 16] = {0};
+    
+    ata_identify(ATA_PRIMARY_IO, ATA_MASTER);
+    ata_read(ATA_PRIMARY_IO, ATA_MASTER, START_DIR, MAX_DIR * 16 / SECTOR_SIZE, dir_buffer);
+
+    printf("  Name           Length\n", COLOR_BLACK_ON_WHITE);
+    printf("  ----           ------\n", COLOR_BLACK_ON_WHITE);
+
+    for (int i = 0; i < MAX_DIR; i++) {
+        DirEntry* dir_entry = (DirEntry*)&dir_buffer[i * 16];
+
+        if (dir_entry->name[0] != 0 && dir_entry->name[0] != '?') {
+            printWithPads("  %-10s      (Size: %-4d bytes)\n",COLOR_BLACK_ON_WHITE, dir_entry->name, dir_entry->size);
+        }
+    }
+}
+
 bool_t isCreated(char* filename) {
     uint8_t dir_buffer[MAX_DIR * 16] = {0};
 

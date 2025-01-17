@@ -48,6 +48,7 @@ uint16_t getCursorPosition(void);
 uint8_t encodeColor(TextStyle style);
 void putc(char c, TextStyle style);
 void printf(const char* fmt, TextStyle style, ...);
+void printWithPads(const char* fmt, TextStyle style, ...);
 void scroll_screen();
 void fillFirstTwoLinesBlue(void);
 void fillBackGroundLines(TextStyle color);
