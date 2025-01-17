@@ -63,8 +63,6 @@ bool_t removeDir(char* filename);
 bool_t removeFat(char* filename);
 bool_t write_data(char* filename, char* data);
 bool_t extract_file(char* filename);
-bool_t write_data(char* filename, char* data);
-bool_t extract_file(char* filename);
 
 void updateDirAndSec(int32_t sectors, int32_t dir);
 
