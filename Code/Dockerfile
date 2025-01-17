@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM ubuntu:22.04-slim
 
 RUN apt-get update && apt-get install -y \
     wget \
