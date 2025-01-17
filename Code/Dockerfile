@@ -1,4 +1,4 @@
-FROM ubuntu:22.04-slim
+FROM bitnami/minideb:bullseye
 
 RUN apt-get update && apt-get install -y \
     wget \
