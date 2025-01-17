@@ -28,14 +28,49 @@ void clear() {
 }
 
 ParsedCommand parseCommand(char* input) {
-    ParsedCommand parsedCommand;
-    parsedCommand.command = strtok(input, " ");
+    ParsedCommand parsedCommand = {0};
+    parsedCommand.command = NULL;
     parsedCommand.arg_count = 0;
 
-    char* arg = strtok(NULL, " ");
-    while (arg && parsedCommand.arg_count < 10) {
-        parsedCommand.arguments[parsedCommand.arg_count++] = arg;
-        arg = strtok(NULL, " ");
+    char* command = strtok(input, " ");
+    if (command == NULL) {
+        return parsedCommand;
+    }
+
+    parsedCommand.command = command;
+
+    if (strcmp(command, "echo") == 0) {
+        char* content = strtok(NULL, ">");
+        if (content != NULL) {
+            parsedCommand.arguments[parsedCommand.arg_count++] = content;
+
+            while (*content == ' ') content++;
+
+            char* target_file = strtok(NULL, " ");
+            if (target_file != NULL) {
+                parsedCommand.arguments[parsedCommand.arg_count++] = target_file;
+            } else {
+                printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
+                parsedCommand.command = NULL;
+                return parsedCommand;
+            }
+
+            if (strtok(NULL, " ") != NULL) {
+                printf("Error: Invalid syntax. Too many arguments for file name.\n", RED_ON_BLACK_WARNING);
+                parsedCommand.command = "\0";
+                return parsedCommand;
+            }
+        } else {
+            printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
+            parsedCommand.command = NULL;
+        }
+    } else {
+        // Общий случай разбиения аргументов
+        char* arg = strtok(NULL, " ");
+        while (arg && parsedCommand.arg_count < 10) {
+            parsedCommand.arguments[parsedCommand.arg_count++] = arg;
+            arg = strtok(NULL, " ");
+        }
     }
 
     return parsedCommand;
