@@ -32,7 +32,7 @@ void initial_jobs() {
     unlock_scheduler();
 
     // Set the initial keyboard cursor position
-    keyboard_cursor_position = 1 * VGA_COLS + VGA_COLS; // Move to the next space after the message
+    init_shell();
 
     create_task((uintptr_t)cursor_signal);
     create_task((uintptr_t)rtc_sync_task);
@@ -69,7 +69,6 @@ void _start(void) {
     enable_keyboard();
     ata_initialize(ATA_PRIMARY_IO, ATA_SLAVE);
     init_fs();
-
     // Initialize the scheduler and enable interrupts
     init_scheduler();
     __asm__("sti");

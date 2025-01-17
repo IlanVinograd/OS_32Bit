@@ -12,11 +12,6 @@ uint32_t inputBufferSize = 256;
 extern TextStyle backGroundColor;
 extern SuperBlock SP;
 
-void print_prompt() {
-    printf(SHELL_PROMPT, COLOR_BLACK_ON_WHITE);
-    keyboard_cursor_position += strlen(SHELL_PROMPT);
-}
-
 void handle_keyboard_input() {
     uint8_t scancode = inPort(KEYBOARD_DATA_PORT);
 
@@ -194,7 +189,7 @@ void handle_enter() {
         }
         keyboard_cursor_position = row * VGA_COLS;
         setCursorPosition(row, 0);
-        print_prompt(); // Print the prompt after a blank line
+        print_prompt();
         return;
     }
 
@@ -312,6 +307,8 @@ void handle_enter() {
         showAllFiles();
     }
 
+    handleHelpCommand(parsedCommand);
+
     // Recognize and process free command
     if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
         handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
@@ -334,5 +331,5 @@ void handle_enter() {
     inputBuffer[0] = '\0';
     inputBufferIndex = 0;
 
-    print_prompt(); // Print the prompt for the next command
+    print_prompt();
 }

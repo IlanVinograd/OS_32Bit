@@ -17,5 +17,10 @@ void clear();
 ParsedCommand parseCommand(char* input);
 void handleFreeCommand(int arg_count, char* arguments[]);
 void handleCubeCommand();
+void handleHelpCommand();
 
-#endif
+void showHelp();
+void print_prompt();
+void init_shell();
+
+#endif /* _SHELL_H_ */

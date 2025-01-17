@@ -20,18 +20,18 @@ void init_fs() {
         dir[i] = (dir_buffer[i * 16] == 0 || dir_buffer[i * 16] == '?') ? 0 : 1; // read this byte if ? or 0 means dir free other wise is not.
     }
 
-    printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
-    printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
-    printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
-    printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
-    printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
-    printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
-    printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
+    // printf("Filesystem initialized with the following parameters:\n",RED_ON_BLACK_WARNING);
+    // printf("Total sectors: %d\n",RED_ON_BLACK_WARNING, SB.total_sectors);
+    // printf("Sectors per cluster: %d\n",RED_ON_BLACK_WARNING,  SB.sectors_per_cluster);
+    // printf("Bytes per sector: %d\n",RED_ON_BLACK_WARNING, SB.bytes_per_sector);
+    // printf("Available dir's: %d\n",RED_ON_BLACK_WARNING, SB.available_direntries);
+    // printf("Available sectors: %d\n",RED_ON_BLACK_WARNING, SB.available_sectors);
+    // printf("Filesystem label: %s\n", RED_ON_BLACK_WARNING, (const char *)SB.label);
 
-    printf("Dir Status: ", RED_ON_BLACK_WARNING);
-    for(int i = 0; i < MAX_DIR; i++){
-        printf("%x", RED_ON_BLACK_WARNING, dir[i]);
-    }
+    // printf("Dir Status: ", RED_ON_BLACK_WARNING);
+    // for(int i = 0; i < MAX_DIR; i++){
+    //     printf("%x", RED_ON_BLACK_WARNING, dir[i]);
+    // }
 }
 
 void create_file(char* filename) {
