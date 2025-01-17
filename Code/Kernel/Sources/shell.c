@@ -65,7 +65,6 @@ ParsedCommand parseCommand(char* input) {
             parsedCommand.command = "\0";
         }
     } else {
-        // Общий случай разбиения аргументов
         char* arg = strtok(NULL, " ");
         while (arg && parsedCommand.arg_count < 10) {
             parsedCommand.arguments[parsedCommand.arg_count++] = arg;
