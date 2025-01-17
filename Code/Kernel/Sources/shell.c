@@ -62,7 +62,7 @@ ParsedCommand parseCommand(char* input) {
             }
         } else {
             printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
-            parsedCommand.command = NULL;
+            parsedCommand.command = "\0";
         }
     } else {
         // Общий случай разбиения аргументов
