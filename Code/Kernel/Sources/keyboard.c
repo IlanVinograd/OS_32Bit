@@ -205,6 +205,7 @@ void handle_enter() {
     setCursorPosition(row, 0);
 
     if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
+    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
             // Allocate all memory
             test_full_allocation();
