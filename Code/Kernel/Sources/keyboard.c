@@ -181,6 +181,17 @@ void handle_enter() {
     scrollIfNeeded(row);
     handleBackgroundColor(inputBuffer);
 
+    if (inputBuffer[0] == '\0') {
+        row++;
+        if (row >= VGA_ROWS) {
+            scroll_screen();
+            row = VGA_ROWS - 1;
+        }
+        keyboard_cursor_position = row * VGA_COLS;
+        setCursorPosition(row, 0);
+        return;
+    }
+    
     // Parse input command
     ParsedCommand parsedCommand = parseCommand((char*)inputBuffer);
 
@@ -195,7 +206,7 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
-    if (parsedCommand.command && strcmp(parsedCommand.command, "test") == 0) {
+    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
             // Allocate all memory
             test_full_allocation();
@@ -259,6 +270,41 @@ void handle_enter() {
             setCursorPosition(row, 0);
         }
     }
+
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"echo") == 0) {
+        if (parsedCommand.arg_count >= 2) {
+            write_to_file(parsedCommand.arguments[0], parsedCommand.arguments[1]);
+            
+        } else {
+            printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
+
+            row += 1;
+            if (row >= VGA_ROWS) {
+                scroll_screen();
+                row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = row * VGA_COLS;
+            setCursorPosition(row, 0);
+        }
+    }
+
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"cat") == 0) {
+        if (parsedCommand.arg_count == 1) {
+            output_file(parsedCommand.arguments[0]);
+
+        } else {
+            printf("Error: Invalid syntax. Usage: cat <File> >\n", RED_ON_BLACK_WARNING);
+
+            row += 1;
+            if (row >= VGA_ROWS) {
+                scroll_screen();
+                row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = row * VGA_COLS;
+            setCursorPosition(row, 0);
+        }
+    }
+
 
 /*
     if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"read") == 0) {
