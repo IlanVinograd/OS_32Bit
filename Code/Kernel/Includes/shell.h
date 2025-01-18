@@ -18,9 +18,11 @@ ParsedCommand parseCommand(char* input);
 void handleFreeCommand(int arg_count, char* arguments[]);
 void handleCubeCommand();
 void handleHelpCommand();
+void handleTestCommand(ParsedCommand parsedCommand);
 
 void showHelp();
 void print_prompt();
 void init_shell();
+void startCube();
 
 #endif /* _SHELL_H_ */

@@ -204,30 +204,9 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
-    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
-        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
-            // Allocate all memory
-            test_full_allocation();
-        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
-            // Create fragmentation
-            test_fragmentation();
-        } else {
-            create_task((uintptr_t)test);
-        }
-    }
+    handleTestCommand(parsedCommand);
     
-    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
-        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
-            if (!cube_active) {
-                cube_active = true;
-                create_task((uintptr_t)handleCubeCommand);
-            } 
-        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
-            if (cube_active) {
-                cube_active = false;
-            }
-        }
-    }
+    handleCubeCommand(parsedCommand);
 
     if (parsedCommand.command && strcmp(parsedCommand.command, "fs") == 0) { // Do this ONLY if needed.
         if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--init") == 0) {

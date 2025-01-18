@@ -75,7 +75,7 @@ ParsedCommand parseCommand(char* input) {
 
     return parsedCommand;
 }
-
+// && parsedCommand.arg_count == 0 <<<<<<<<<<<<<
 void handleFreeCommand(int arg_count, char* arguments[]) {
     uint32_t totalMemory = NUM_PAGES * PAGE_SIZE;
     uint32_t usedMemory = pagesAllocated * PAGE_SIZE;
@@ -152,23 +152,39 @@ void handleFreeCommand(int arg_count, char* arguments[]) {
     setCursorPosition(row, 0);
 }
 
-void handleCubeCommand() {
-    while (cube_active) {
-        renderCube();
-        A += 0.13;
-        B += 0.06;
-        C += 0.09;
-        yield();
+void handleCubeCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
+            if (!cube_active) {
+                cube_active = true;
+                create_task((uintptr_t)startCube);
+            } 
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
+            if (cube_active) {
+                cube_active = false;
+            }
+        }
     }
-    set_task_state(current, TERMINATED);
-    clear();
-    yield();
 }
 
 void handleHelpCommand(ParsedCommand parsedCommand) {
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"help") == 0) {
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"help") == 0 && parsedCommand.arg_count == 0) {
         showHelp();
         nextLine();
+    }
+}
+
+void handleTestCommand(ParsedCommand parsedCommand) {
+    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
+            // Allocate all memory
+            test_full_allocation();
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
+            // Create fragmentation
+            test_fragmentation();
+        } else {
+            create_task((uintptr_t)test);
+        }
     }
 }
 
@@ -219,4 +235,17 @@ void init_shell() {
     setCursorPosition(initial_row, initial_col);
 
     print_prompt();
+}
+
+void startCube() {
+    while (cube_active) {
+        renderCube();
+        A += 0.13;
+        B += 0.06;
+        C += 0.09;
+        yield();
+    }
+    set_task_state(current, TERMINATED);
+    clear();
+    yield();
 }
