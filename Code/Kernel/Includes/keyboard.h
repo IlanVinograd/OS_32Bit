@@ -15,7 +15,6 @@
 
 #define SHELL_PROMPT "OS_32Bit> "
 
-void print_prompt();
 void handle_keyboard_input();
 int8_t scancode_to_ascii(uint8_t scancode);
 void enable_keyboard();
