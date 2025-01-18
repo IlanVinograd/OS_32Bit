@@ -76,99 +76,141 @@ ParsedCommand parseCommand(char* input) {
     return parsedCommand;
 }
 
-void handleFreeCommand(int arg_count, char* arguments[]) {
-    uint32_t totalMemory = NUM_PAGES * PAGE_SIZE;
-    uint32_t usedMemory = pagesAllocated * PAGE_SIZE;
-    uint32_t freeMemory = totalMemory - usedMemory;
-    
-    uint16_t row = keyboard_cursor_position / VGA_COLS;
-
-    if (arg_count > 0 && strcmp(arguments[0], "--bar") == 0) {
-        // Display memory usage as a bar
-        scrollIfNeeded(row);
-        printf("Total Memory  |", COLOR_BLACK_ON_WHITE);
-        for (uint32_t i = 0; i < 20; i++) {
-            // Total memory is always full
-            printf("I", COLOR_BLACK_ON_WHITE);
-        }
-        printf("|\n", COLOR_BLACK_ON_WHITE);
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Used Memory   |", COLOR_BLACK_ON_WHITE);
-        for (uint32_t i = 0; i < 20; i++) {
-            if (i < (usedMemory * 20 / totalMemory)) {
-                printf("I", COLOR_BLACK_ON_WHITE);
-            } else {
-                printf("-", COLOR_BLACK_ON_WHITE);
-            }
-        }
-        printf("|\n", COLOR_BLACK_ON_WHITE);
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Free Memory   |", COLOR_BLACK_ON_WHITE);
-        for (uint32_t i = 0; i < 20; i++) {
-            if (i < (freeMemory * 20 / totalMemory)) {
-                printf("I", COLOR_BLACK_ON_WHITE);
-            } else {
-                printf("-", COLOR_BLACK_ON_WHITE);
-            }
-        }
-        printf("|\n", COLOR_BLACK_ON_WHITE);
-        ++row;
-        scrollIfNeeded(row);
-    } else if (arg_count > 0 && strcmp(arguments[0], "--kibi") == 0) {
-        // Display memory usage in KiB
-        scrollIfNeeded(row);
-        printf("Total Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, totalMemory / 1024);
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Used Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, usedMemory / 1024);
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Free Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, freeMemory / 1024);
-        ++row;
-        scrollIfNeeded(row);
-    } else {
-        // Display memory usage in MB
-        scrollIfNeeded(row);
-        printf("Total Memory: %u MB\n", COLOR_BLACK_ON_WHITE, totalMemory / (1024 * 1024));
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Used Memory: %u MB\n", COLOR_BLACK_ON_WHITE, usedMemory / (1024 * 1024));
-        ++row;
-        scrollIfNeeded(row);
-
-        printf("Free Memory: %u MB\n", COLOR_BLACK_ON_WHITE, freeMemory / (1024 * 1024));
-        ++row;
-        scrollIfNeeded(row);
+void handleFreeCommand(ParsedCommand parsedCommand) {
+    if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
+        print_memory(parsedCommand);
     }
-
-    // Move the cursor down three lines
-    setCursorPosition(row, 0);
 }
 
-void handleCubeCommand() {
-    while (cube_active) {
-        renderCube();
-        A += 0.13;
-        B += 0.06;
-        C += 0.09;
-        yield();
+void handleCubeCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
+            if (!cube_active) {
+                cube_active = true;
+                create_task((uintptr_t)startCube);
+            } 
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
+            if (cube_active) {
+                cube_active = false;
+            }
+        }
     }
-    set_task_state(current, TERMINATED);
-    clear();
-    yield();
+}
+
+void handleFsCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "fs") == 0) { // Do this ONLY if needed.
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--init") == 0) {
+            init_fs();
+        }
+    }
 }
 
 void handleHelpCommand(ParsedCommand parsedCommand) {
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"help") == 0) {
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"help") == 0 && parsedCommand.arg_count == 0) {
         showHelp();
         nextLine();
+    }
+}
+
+void handleTestCommand(ParsedCommand parsedCommand) {
+    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
+        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
+            // Allocate all memory
+            test_full_allocation();
+        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
+            // Create fragmentation
+            test_fragmentation();
+        } else {
+            create_task((uintptr_t)test);
+        }
+    }
+}
+
+void handleLsCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"ls") == 0) {
+        showAllFiles();
+    }
+}
+
+void handleClearCommand(ParsedCommand parsedCommand) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
+        clear();
+        scroll_screen();
+    }
+}
+
+void handleCatCommand(ParsedCommand parsedCommand, uint16_t *row) {
+    if (parsedCommand.command && strcmp((const uint8_t *)parsedCommand.command, (const uint8_t *)"cat") == 0) {
+        if (parsedCommand.arg_count == 1) {
+            output_file(parsedCommand.arguments[0]);
+        } else {
+            printf("Error: Invalid syntax. Usage: cat <File>\n", RED_ON_BLACK_WARNING);
+
+            (*row)++;
+            if (*row >= VGA_ROWS) {
+                scroll_screen();
+                *row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = (*row) * VGA_COLS;
+            setCursorPosition(*row, 0);
+        }
+    }
+}
+
+void handleTouchCommand(ParsedCommand parsedCommand, uint16_t *row) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
+        if (parsedCommand.arg_count == 1) {
+            create_file(parsedCommand.arguments[0]);
+            
+        } else {
+            printf("Usage: touch <filename>\n", backGroundColor);
+
+            *row += 1;
+            if (*row >= VGA_ROWS) {
+                scroll_screen();
+                *row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = *row * VGA_COLS;
+            setCursorPosition(*row, 0);
+        }
+    }
+}
+
+void handleRmCommand(ParsedCommand parsedCommand, uint16_t *row) {
+    if (parsedCommand.command && strcmp(parsedCommand.command, "rm") == 0) {
+        if (parsedCommand.arg_count == 1) {
+            delete_file(parsedCommand.arguments[0]);
+            
+        } else {
+            printf("Usage: rm <filename>\n", backGroundColor);
+
+            *row += 1;
+            if (*row >= VGA_ROWS) {
+                scroll_screen();
+                *row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = *row * VGA_COLS;
+            setCursorPosition(*row, 0);
+        }
+    }
+}
+
+void handleEchoCommand(ParsedCommand parsedCommand, uint16_t *row) {
+    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"echo") == 0) {
+        if (parsedCommand.arg_count >= 2) {
+            write_to_file(parsedCommand.arguments[0], parsedCommand.arguments[1]);
+            
+        } else {
+            printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
+
+            *row += 1;
+            if (*row >= VGA_ROWS) {
+                scroll_screen();
+                *row = VGA_ROWS - 1;
+            }
+            keyboard_cursor_position = *row * VGA_COLS;
+            setCursorPosition(*row, 0);
+        }
     }
 }
 
@@ -219,4 +261,93 @@ void init_shell() {
     setCursorPosition(initial_row, initial_col);
 
     print_prompt();
+}
+
+void startCube() {
+    while (cube_active) {
+        renderCube();
+        A += 0.13;
+        B += 0.06;
+        C += 0.09;
+        yield();
+    }
+    set_task_state(current, TERMINATED);
+    clear();
+    yield();
+}
+
+void print_memory(ParsedCommand parsedCommand) {
+    uint32_t totalMemory = NUM_PAGES * PAGE_SIZE;
+    uint32_t usedMemory = pagesAllocated * PAGE_SIZE;
+    uint32_t freeMemory = totalMemory - usedMemory;
+    
+    uint16_t row = keyboard_cursor_position / VGA_COLS;
+
+    if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--bar") == 0) {
+        // Display memory usage as a bar
+        scrollIfNeeded(row);
+        printf("Total Memory  |", COLOR_BLACK_ON_WHITE);
+        for (uint32_t i = 0; i < 20; i++) {
+            // Total memory is always full
+            printf("I", COLOR_BLACK_ON_WHITE);
+        }
+        printf("|\n", COLOR_BLACK_ON_WHITE);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Used Memory   |", COLOR_BLACK_ON_WHITE);
+        for (uint32_t i = 0; i < 20; i++) {
+            if (i < (usedMemory * 20 / totalMemory)) {
+                printf("I", COLOR_BLACK_ON_WHITE);
+            } else {
+                printf("-", COLOR_BLACK_ON_WHITE);
+            }
+        }
+        printf("|\n", COLOR_BLACK_ON_WHITE);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Free Memory   |", COLOR_BLACK_ON_WHITE);
+        for (uint32_t i = 0; i < 20; i++) {
+            if (i < (freeMemory * 20 / totalMemory)) {
+                printf("I", COLOR_BLACK_ON_WHITE);
+            } else {
+                printf("-", COLOR_BLACK_ON_WHITE);
+            }
+        }
+        printf("|\n", COLOR_BLACK_ON_WHITE);
+        ++row;
+        scrollIfNeeded(row);
+    } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--kibi") == 0) {
+        // Display memory usage in KiB
+        scrollIfNeeded(row);
+        printf("Total Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, totalMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Used Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, usedMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Free Memory: %u KiB\n", COLOR_BLACK_ON_WHITE, freeMemory / 1024);
+        ++row;
+        scrollIfNeeded(row);
+    } else {
+        // Display memory usage in MB
+        scrollIfNeeded(row);
+        printf("Total Memory: %u MB\n", COLOR_BLACK_ON_WHITE, totalMemory / (1024 * 1024));
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Used Memory: %u MB\n", COLOR_BLACK_ON_WHITE, usedMemory / (1024 * 1024));
+        ++row;
+        scrollIfNeeded(row);
+
+        printf("Free Memory: %u MB\n", COLOR_BLACK_ON_WHITE, freeMemory / (1024 * 1024));
+        ++row;
+        scrollIfNeeded(row);
+    }
+
+    // Move the cursor down three lines
+    setCursorPosition(row, 0);
 }

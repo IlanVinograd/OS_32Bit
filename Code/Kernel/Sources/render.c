@@ -55,7 +55,7 @@ void insertSymbol(int index, char symbol, float depth) {
 }
 
 void renderCube() {
-    float velocity = 0.7;
+    float velocity = 0.8;
 
     // Clear buffers
     memset(background, ' ', sizeof(background));

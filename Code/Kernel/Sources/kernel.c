@@ -65,7 +65,7 @@ void _start(void) {
     init_bitmap();
     pic_init();
     init_free_list();
-    initScreen("0.9");
+    initScreen("1.0");
     enable_keyboard();
     ata_initialize(ATA_PRIMARY_IO, ATA_SLAVE);
     init_fs();
