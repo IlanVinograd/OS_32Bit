@@ -204,121 +204,17 @@ void handle_enter() {
 
     setCursorPosition(row, 0);
 
-    if (strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"test") == 0) {
-        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--all") == 0) {
-            // Allocate all memory
-            test_full_allocation();
-        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--some") == 0) {
-            // Create fragmentation
-            test_fragmentation();
-        } else {
-            create_task((uintptr_t)test);
-        }
-    }
-    
-    if (parsedCommand.command && strcmp(parsedCommand.command, "cube") == 0) {
-        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--on") == 0) {
-            if (!cube_active) {
-                cube_active = true;
-                create_task((uintptr_t)handleCubeCommand);
-            } 
-        } else if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--off") == 0) {
-            if (cube_active) {
-                cube_active = false;
-            }
-        }
-    }
-
-    if (parsedCommand.command && strcmp(parsedCommand.command, "fs") == 0) { // Do this ONLY if needed.
-        if (parsedCommand.arg_count > 0 && strcmp(parsedCommand.arguments[0], "--init") == 0) {
-            init_fs();
-        }
-    }
-    
-    if (parsedCommand.command && strcmp(parsedCommand.command, "touch") == 0) {
-        if (parsedCommand.arg_count == 1) {
-            create_file(parsedCommand.arguments[0]);
-            
-        } else {
-            printf("Usage: touch <filename>\n", backGroundColor);
-
-            row += 1;
-            if (row >= VGA_ROWS) {
-                scroll_screen();
-                row = VGA_ROWS - 1;
-            }
-            keyboard_cursor_position = row * VGA_COLS;
-            setCursorPosition(row, 0);
-        }
-    }
-
-    if (parsedCommand.command && strcmp(parsedCommand.command, "rm") == 0) {
-        if (parsedCommand.arg_count == 1) {
-            delete_file(parsedCommand.arguments[0]);
-            
-        } else {
-            printf("Usage: rm <filename>\n", backGroundColor);
-
-            row += 1;
-            if (row >= VGA_ROWS) {
-                scroll_screen();
-                row = VGA_ROWS - 1;
-            }
-            keyboard_cursor_position = row * VGA_COLS;
-            setCursorPosition(row, 0);
-        }
-    }
-
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"echo") == 0) {
-        if (parsedCommand.arg_count >= 2) {
-            write_to_file(parsedCommand.arguments[0], parsedCommand.arguments[1]);
-            
-        } else {
-            printf("Error: Invalid syntax. Usage: echo <content> > <file>\n", RED_ON_BLACK_WARNING);
-
-            row += 1;
-            if (row >= VGA_ROWS) {
-                scroll_screen();
-                row = VGA_ROWS - 1;
-            }
-            keyboard_cursor_position = row * VGA_COLS;
-            setCursorPosition(row, 0);
-        }
-    }
-
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"cat") == 0) {
-        if (parsedCommand.arg_count == 1) {
-            output_file(parsedCommand.arguments[0]);
-
-        } else {
-            printf("Error: Invalid syntax. Usage: cat <File> >\n", RED_ON_BLACK_WARNING);
-
-            row += 1;
-            if (row >= VGA_ROWS) {
-                scroll_screen();
-                row = VGA_ROWS - 1;
-            }
-            keyboard_cursor_position = row * VGA_COLS;
-            setCursorPosition(row, 0);
-        }
-    }
-
-    if (parsedCommand.command && strcmp((const uint8_t*)parsedCommand.command, (const uint8_t*)"ls") == 0) {
-        showAllFiles();
-    }
-
+    handleTestCommand(parsedCommand);
+    handleCubeCommand(parsedCommand);
+    handleFsCommand(parsedCommand);
+    handleTouchCommand(parsedCommand, &row);
+    handleRmCommand(parsedCommand, &row);
+    handleEchoCommand(parsedCommand, &row);
+    handleLsCommand(parsedCommand);
     handleHelpCommand(parsedCommand);
-
-    // Recognize and process free command
-    if(parsedCommand.command && strcmp(parsedCommand.command, "free") == 0) {
-        handleFreeCommand(parsedCommand.arg_count, parsedCommand.arguments);
-    }
-
-    // Check 'clear' command
-    if (parsedCommand.command && strcmp(parsedCommand.command, "clear") == 0) {
-        clear();
-        scroll_screen();
-    }
+    handleFreeCommand(parsedCommand);
+    handleClearCommand(parsedCommand);
+    handleCatCommand(parsedCommand, &row);
 
     // Reset input buffer to default size
     free(inputBuffer);
